@@ -1,0 +1,37 @@
+Open Server Platform Admin Guide
+Version 0.2
+4/7/08
+Coyright 2008 Jacob Torrey
+			
+Introduction
+	Welcome to OSP! Hopefully you'll find it as exciting as we do! Let's 
+get started then, shall we?
+	
+Starting OSP
+	Once you have the OSP environment installed, edit the osp.conf and run:
+	
+	 		./start-osp.sh
+	 							
+	This will start an OSP instance on the local machine prepared to server
+code to remote nodes and running the Mnesia shared state database. It will
+also start the administrator console listening on port 9876. Once this script 
+is complete, telnet to 127.0.0.1 on port 9876. You are now in the admin 
+console for OSP, from whence you can see stats about the current system, add
+other nodes to the OSP cluster, and manage running applications.
+
+Adding other nodes
+	To add other diskless nodes (nodes without a copy of OSP, just copy 
+join.sh to each machine and edit it to reflect your setup. Before running the 
+join script, type 'add-diskless-ip <ip of joining machine>' on the OSP admin 
+console. Now you can run the join script and on the OSP admin console, when 
+you run 'stats', you should see your new node. 
+	To add nodes that have a local copy of OSP, just edit the join script 
+to point to the other nodes and run it. It will automatically detect if there 
+is a local copy of OSP and use that one.
+
+Starting applications
+	To start applications, connect to the admin console and type 'start
+<app name> <port #> <node name>'. If you want to run an application on the 
+master server, start it on that one first. If you are starting an application 
+on remote machine, you must ensure that it resides on that machine, or if it is
+a diskless node, that the compiled application is on the master code server.

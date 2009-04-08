@@ -1,0 +1,9 @@
+<!ELEMENT osp-servlet (author, name, version, code)>
+<!ELEMENT author (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT version (#PCDATA)>
+<!ELEMENT proto (#PCDATA)>
+<!ELEMENT code (init, server, cleanup)>
+<!ELEMENT init (#PCDATA)>
+<!ELEMENT server (#PCDATA)>
+<!ELEMENT cleanup (#PCDATA)>

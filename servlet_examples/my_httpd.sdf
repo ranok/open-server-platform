@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE osp-servlet PUBLIC "-//Jacob Torrey//Open Server Platform Servlet//EN" "http://www.openserverplatform.com/osp-servlet.dtd">
+<osp-servlet>
+  <author>Jacob Ian Torrey</author>
+  <name>my_httpd</name>
+  <version>0.1</version>
+  <proto>tcp</proto>
+  <code>
+  <init><![CDATA[
+  init() ->
+	ok.
+  ]]></init>
+  <server><![CDATA[
+  -define(DIR, ".").
+  
+server(Sock) ->
+    case recv(Sock, 0) of
+	{error, closed} ->
+	    exit(normal);
+	D ->
+	    Str = erlang:binary_to_list(D),
+	    Tokens = string:tokens(Str, " "),
+	    [Req, Dir | _] = Tokens,
+	    case Req of 
+		"GET" ->
+		    case filelib:is_file(?DIR ++ Dir) of
+			true ->
+			    send(Sock, "HTTP/1.0 200 OK\r\n"),
+			    {Size, Res} = handle(?DIR ++ Dir),
+			    send(Sock, "Content-Length: " ++ erlang:integer_to_list(Size) ++ "\r\n"),
+			    send(Sock, Res),
+			    close(Sock);
+			false ->
+			    send(Sock, "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n<html><head><title>File Not Found</title></head><body>404 File Not Found</body></html>"),
+			    close(Sock)
+		    end
+	    end
+    end,
+    exit(normal).
+
+%% @doc Handles different types of files
+handle(File) ->
+    Tokens = string:tokens(File, "."),
+    [Type|_] = lists:reverse(Tokens),
+    case Type of
+	"/" ->
+	    Mime = get_mime("html"),
+	    Dat = "<html>\n<head>\n<title>Welcome to the OSP test webserver</title>\n</head>\n<body>Welcome to OSP's test webserver\n</body>\n</html>",
+	    Res = add_res(Mime, Dat);
+	"cgi" ->
+	    Res = os:cmd(File);
+	"pl" ->
+	    Res = os:cmd(File);
+	"php" ->
+	    Res = os:cmd("php-cgi " ++ File);
+	_ ->
+	    Mime = get_mime(string:to_lower(Type)),
+	    {ok, Dat} = file:read_file(File),
+	    Res = add_res(Mime, Dat)
+    end,
+    {string:len(Res), erlang:list_to_binary(Res)}.
+
+%% @doc A function to auotmatically add the Content-Type header to the response
+add_res(Mime, Dat) when is_binary(Dat) ->
+    "Content-Type: " ++ Mime ++ "\r\n\r\n" ++ erlang:binary_to_list(Dat);
+add_res(Mime, Dat) when is_list(Dat) ->
+    "Content-Type: " ++ Mime ++ "\r\n\r\n" ++ Dat;
+add_res(Mime, Dat) ->
+    "Content-Type: " ++ Mime ++ "\r\n\r\n" ++ erlang:atom_to_list(Dat).
+
+%% @doc Returns the MIME type of a file
+get_mime("html") ->
+    "text/html";
+get_mime("css") ->
+    "text/css";
+get_mime("js") ->
+    "text/javascript";
+get_mime("jpg") ->
+    "image/jpeg";
+get_mime("jpeg") ->
+    "image/jpeg";
+get_mime(_) ->
+    "text/plain".
+]]></server>
+  <cleanup><![CDATA[
+  cleanup() ->
+	ok.
+  ]]></cleanup>
+</code>
+</osp-servlet>

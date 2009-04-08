@@ -1,0 +1,25 @@
+#!/bin/bash
+
+NODENAME="slave"
+BOOTSERVER="127.0.0.1"
+FQDN=0 # Use FQDN for node name: 0 for false, 1 for true
+MASTERNODE="master@localhost"
+COOKIE="AMOJDKFJHEJDHJKSJDY"
+
+NAME="-sname"
+
+if [ $FQDN -eq 1 ]
+then
+    NAME="-name"
+fi
+
+LOADER="-loader inet -hosts"
+
+if [ -a "osp.beam" ]
+then
+    LOADER=""
+    BOOTSERVER=""
+fi
+
+epmd -daemon
+erl -noshell -detached $NAME $NODENAME -id $NODENAME $LOADER $BOOTSERVER -setcookie $COOKIE -s osp join $MASTERNODE

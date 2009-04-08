@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE osp-servlet PUBLIC "-//Jacob Torrey//Open Server Platform Servlet//EN" "http://www.openserverplatform.com/osp-servlet.dtd">
+<osp-servlet>
+  <author>Jacob Ian Torrey</author>
+  <name>echo2</name>
+  <version>0.1</version>
+  <proto>tcp</proto>
+  <code>
+  <init><![CDATA[
+  init() ->
+    store(count, 0),
+    io:format("~p is starting!~n", [?MODULE]).
+  ]]></init>
+  <server><![CDATA[
+  server(Sock) ->
+    Num = retrieve(count),
+    store(count, Num + 1),
+    io:format("Client #~p connected!~n", [Num]),
+    loop(Sock).
+    
+  loop(Sock) ->
+    Res = recv(Sock, 0),
+    if
+	% If the socket is closed then exit
+	Res =:= {error, closed} ->
+	    exit(normal);
+	% Otherwise, reply
+	true ->
+	    io:format("~p~n", [erlang:binary_to_list(Res)]),
+	    send(Sock, Res),
+	    loop(Sock)
+    end.
+  ]]></server>
+  <cleanup><![CDATA[
+  cleanup() ->
+    io:format("~p is stopping!~n", [?MODULE]).
+  ]]></cleanup>
+  </code>
+</osp-servlet>

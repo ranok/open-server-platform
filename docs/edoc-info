@@ -1,0 +1,2 @@
+{packages,[]}.
+{modules,[osp_broker,osp_mnesia,osp_socket]}.
