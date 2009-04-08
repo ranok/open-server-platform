@@ -11,8 +11,9 @@
 	ok.
   ]]></init>
   <server><![CDATA[
-  -define(DIR, ".").
-  
+
+-define(DIR, ".").
+
 server(Sock) ->
     case recv(Sock, 0) of
 	{error, closed} ->
@@ -26,9 +27,22 @@ server(Sock) ->
 		    case filelib:is_file(?DIR ++ Dir) of
 			true ->
 			    send(Sock, "HTTP/1.0 200 OK\r\n"),
-			    {Size, Res} = handle(?DIR ++ Dir),
+			    {Size, FP} = handle(?DIR ++ Dir),
 			    send(Sock, "Content-Length: " ++ erlang:integer_to_list(Size) ++ "\r\n"),
-			    send(Sock, Res),
+			    send_file(Sock, FP),
+			    close_file(FP),
+			    close(Sock);
+			false ->
+			    send(Sock, "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n<html><head><title>File Not Found</title></head><body>404 File Not Found</body></html>"),
+			    close(Sock)
+		    end;
+		"HEAD" ->
+		    case filelib:is_file(?DIR ++ Dir) of
+			true ->
+			    send(Sock, "HTTP/1.0 200 OK\r\n"),
+			    {Size, FP} = handle(?DIR ++ Dir),
+			    send(Sock, "Content-Length: " ++ erlang:integer_to_list(Size) ++ "\r\n"),
+			    close_file(FP),
 			    close(Sock);
 			false ->
 			    send(Sock, "HTTP/1.0 404 Not Found\r\nContent-Type: text/html\r\n\r\n<html><head><title>File Not Found</title></head><body>404 File Not Found</body></html>"),
@@ -38,6 +52,29 @@ server(Sock) ->
     end,
     exit(normal).
 
+%% @doc Sends the data to the client, automagically switching between dumping and reading/dumping
+send_file(Sock, {data, Data}) ->
+    send(Sock, Data);
+send_file(Sock, {handle, Mime, FP}) ->
+    send(Sock, "Content-Type: " ++ Mime ++ "\r\n\r\n"),
+    send_rec(Sock, FP).
+
+%% @doc The recursize helper to send large files in chunks
+send_rec(Sock, FP) ->
+    case file:read(FP, 1024) of
+	{ok, Data} ->
+	    send(Sock, Data),
+	    send_rec(Sock, FP);
+	_ ->
+	    ok
+    end.
+
+%% @doc Closes the file (if needed)
+close_file({handle, _, FP}) ->
+    file:close(FP);
+close_file(_) ->
+    ok.
+
 %% @doc Handles different types of files
 handle(File) ->
     Tokens = string:tokens(File, "."),
@@ -46,19 +83,25 @@ handle(File) ->
 	"/" ->
 	    Mime = get_mime("html"),
 	    Dat = "<html>\n<head>\n<title>Welcome to the OSP test webserver</title>\n</head>\n<body>Welcome to OSP's test webserver\n</body>\n</html>",
-	    Res = add_res(Mime, Dat);
+	    Res = {data, add_res(Mime, Dat)};
 	"cgi" ->
-	    Res = os:cmd(File);
+	    Res = {data, os:cmd(File)};
 	"pl" ->
-	    Res = os:cmd(File);
+	    Res = {data, os:cmd(File)};
 	"php" ->
-	    Res = os:cmd("php-cgi " ++ File);
+	    Res = {data, os:cmd("php-cgi " ++ File)};
 	_ ->
 	    Mime = get_mime(string:to_lower(Type)),
-	    {ok, Dat} = file:read_file(File),
-	    Res = add_res(Mime, Dat)
+	    {ok, FP} = file:open(File),
+	    Res = {handle, Mime, FP}
     end,
-    {string:len(Res), erlang:list_to_binary(Res)}.
+    case Res of
+	{data, Data} ->
+	    Tuple = {string:len(Data), {data, Data}};
+	{handle, M, F} ->
+	    Tuple = {filelib:file_size(File), {handle, M, F}}
+    end,
+    Tuple.
 
 %% @doc A function to auotmatically add the Content-Type header to the response
 add_res(Mime, Dat) when is_binary(Dat) ->
@@ -81,6 +124,7 @@ get_mime("jpeg") ->
     "image/jpeg";
 get_mime(_) ->
     "text/plain".
+
 ]]></server>
   <cleanup><![CDATA[
   cleanup() ->
