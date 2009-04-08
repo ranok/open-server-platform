@@ -33,7 +33,7 @@ start(Name, Port) ->
 	    CP = osp_proto:set_control(apply(Name, proto, [])),
 	    CP(LSock, Pid),
 	    erlang:register(Name, Pid),
-	    ok;
+	    Pid;
 	Error ->
 	    {error, Error}
     end.

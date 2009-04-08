@@ -2,10 +2,10 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
 %% @doc The OSP jumping off module
 -module(osp).
--export([start/0, join/1, get_conf/2, setup/0]).
+-export([start/0, stop/0, join/1, get_conf/2, setup/0]).
 
 %% @doc Starts the first 'master' node
-%% @spec start() -> ok
+%% @spec init() -> {ok, Pid, []} | {error, Reason}
 start() ->
     ConfFile = "osp.conf",
     case get_conf(usefqdn, ConfFile) of
@@ -15,7 +15,20 @@ start() ->
 	    net_kernel:start([get_conf(nodename, ConfFile), shortnames])
     end,
     erlang:set_cookie(node(), get_conf(cookie, ConfFile)),
-    osp_broker:start(osp_admin, get_conf(adminport, ConfFile)).
+    Pid = osp_broker:start(osp_admin, get_conf(adminport, ConfFile)),
+    case Pid of
+	{error, Err} ->
+	    {error, Err};
+	_ ->
+	    {ok, Pid, []}
+    end.
+
+%% @doc Stops OSP on this node
+%% @spec stop(Reason, State) -> ok
+stop() ->
+    osp_broker:stop(osp_broker),
+    osp_broker:shutdown(),
+    ok.
 
 %% @doc Setups mnesia for the first time
 %% @spec setup() -> ok

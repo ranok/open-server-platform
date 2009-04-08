@@ -44,7 +44,8 @@ handlecommand(Sock, Msg) ->
 	    lists:map(F, [node() | nodes()]),
 	    sendf(Sock, "The following IPs: ~p are allowed to be diskless~n", [erl_boot_server:which_slaves()]);
 	"quit" ->
-	    gen_tcp:close(Sock);
+	    gen_tcp:close(Sock),
+	    exit(normal);
    	"shutdown" ->
 	    F = fun(Node) ->
 			rpc:call(Node, osp_broker, shutdown, []),
