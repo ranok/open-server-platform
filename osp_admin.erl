@@ -37,7 +37,7 @@ handlecommand(Sock, Msg) ->
     String3 = string:strip(String2, right, $\r),
     case String3 of
 	"help" -> % Print out the help message
-	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n">>);
+	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n\tstop <appname> <node> - Stops the servlet on the given node\r\nmigrate <appname> <fromnode> <tonode> <port> - Migrates a servlet from fromnode to tonode, starting it on the given port\n">>);
 	"stats" -> % Display some stats
 	    F = fun(Node) -> sendf(Sock, "~p: ~f~n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
 	    sendf(Sock, "Nodes in the cluster and their CPU Utilization: ~n", []),
@@ -70,6 +70,14 @@ handlecommand(Sock, Msg) ->
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
 		    start_servlet(App, Port, Node, Sock);
+		"migrate" ->
+		    [Comm, AppList, FromNodeList, NodeList, PortList ] = Split,
+		    Port = erlang:list_to_integer(PortList),
+		    From = erlang:list_to_atom(FromNodeList),
+		    App = erlang:list_to_atom(AppList),
+		    Node = erlang:list_to_atom(NodeList),
+		    start_servlet(App, Port, Node, Sock),
+		    stop_servlet(App, From, Sock);
 		"add-diskless-ip" ->
 		    [Comm, IPList] = Split,
 		    IP = erlang:list_to_atom(IPList),
