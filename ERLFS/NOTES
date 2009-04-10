@@ -1,0 +1,5 @@
+- Use blocks (tweakable size)
+- Store blocks as files, metadata/inode structure as mnesia data
+- Locking will be with Mnesia
+- Update will be first-come-first-serve
+- Add balancing
