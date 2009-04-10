@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "Setting up OSP"
-erl -smp auto -detached -run osp setup
+erl -smp auto -pa ./ebin -detached -run osp setup

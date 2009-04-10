@@ -6,7 +6,7 @@
 
 -export([start/2, stop/1]).
 
-start(_Args) ->
+start(_Type, _StartArgs) ->
     osp:start().
 
 stop(_State) ->

@@ -7,6 +7,8 @@
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
+-include("../include/conf.hrl").
+
 % Import the OSP socket library
 -import(osp_socket, [send/2, recv/2, sendf/3, close/1]).
 
@@ -91,6 +93,11 @@ handlecommand(Sock, Msg) ->
 			_ ->
 			    send(Sock, "Sorry, unknown backup type: " ++ TypeL ++ "\r\n")
 		    end;
+		"stop" ->
+		    [Comm, AppL, NodeL] = Split,
+		    App = erlang:list_to_atom(AppL),
+		    Node = erlang:list_to_atom(NodeL),
+		    stop_servlet(App, Node, Sock);
 		_ ->
 		    send(Sock, "Sorry, unknown command " ++ Unknown ++ "\r\n")
 	    end
@@ -125,6 +132,20 @@ start_db(Node, App) ->
     ok.
 
 
+stop_servlet(App, Node, Sock) ->
+    case lists:member(Node, [node() | nodes()]) of
+	true ->
+	    if
+		Node =:= node() ->
+		    osp_broker:stop(App);
+		true->
+		    rpc:call(Node, osp_broker, stop, [App])
+	    end,
+	    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
+	false ->
+	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+    end.
+
 start_servlet(App, Port, Node, Sock) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
@@ -156,25 +177,17 @@ start_servlet(App, Port, Node) ->
     end.
 
 init() ->
-    application:start(sasl),
-    application:start(os_mon),
-    mnesia:start(),
     erl_boot_server:start(['127.0.0.1']),
-    AllowedNodes = osp:get_conf(allowed_diskless, "osp.conf"),
     DL = fun(IP) ->
 		 erl_boot_server:add_slave(IP)
 	 end,
-    lists:foreach(DL, AllowedNodes),
-    AutoStart = osp:get_conf(auto_started, "osp.conf"),
+    lists:foreach(DL, ?ALLOWED_DISKLESS),
     F = fun({App, Port}) ->
 		start_servlet(App, Port, node())
 	end,
-    lists:foreach(F, AutoStart),
+    lists:foreach(F, ?AUTO_STARTED),
     ok.
 
 cleanup() ->
-    application:stop(sasl),
-    application:stop(os_mon),
-    mnesia:stop(),
     ok.
   

@@ -1,19 +1,19 @@
 % OSP Server Configuration
 
 % Use FQDNs
-{usefqdn, false}.
+-define(USEFQDN, false).
 
 % The name of this node (if the above is true, this must be a FQDN)
-{nodename, 'master'}.
+-define(NODENAME, 'master').
 
 % Port the admin console should listen on
-{adminport, 9876}.
+-define(ADMINPORT, 9876).
 
 % The secret cookie
-{cookie, 'AMOJDKFJHEJDHJKSJDY'}.
+-define(COOKIE, 'AMOJDKFJHEJDHJKSJDY').
 
 % Auto started applications as {name, port} tuples
-{auto_started, []}.
+-define(AUTO_STARTED, []).
 
 % Allowed diskless client IPs
-{allowed_diskless, ['127.0.0.1']}.
+-define(ALLOWED_DISKLESS, ['127.0.0.1']).

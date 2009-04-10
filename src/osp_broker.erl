@@ -12,7 +12,6 @@
 %% @doc Shuts down the Mnesia database
 %% @spec shutdown() -> ok
 shutdown() -> 
-    mnesia:stop(),
     ok.
 
 %% @doc Stops the server broker and all it's children processes
