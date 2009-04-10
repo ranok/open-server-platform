@@ -90,6 +90,11 @@ handlecommand(Sock, Msg) ->
 			_ ->
 			    send(Sock, "Sorry, unknown backup type: " ++ TypeL ++ "\r\n")
 		    end;
+		"stop" ->     
+		    [Comm, AppL, NodeL] = Split,
+		    App = erlang:list_to_atom(AppL),
+		    Node = erlang:list_to_atom(NodeL),
+		    stop_servlet(App, Node, Sock);
 		_ ->
 		    send(Sock, "Sorry, unknown command " ++ Unknown ++ "\r\n")
 	    end
@@ -123,6 +128,19 @@ start_db(Node, App) ->
     rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000]),
     ok.
 
+stop_servlet(App, Node, Sock) ->
+    case lists:member(Node, [node() | nodes()]) of
+	true ->
+	    if
+		Node =:= node() ->
+		    osp_broker:stop(App);
+		true -> 
+		    rpc:call(Node, osp_broker, stop, [App])
+	    end,
+	    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
+	false ->
+	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+    end.
 
 start_servlet(App, Port, Node, Sock) ->
     case lists:member(Node, [node() | nodes()]) of
