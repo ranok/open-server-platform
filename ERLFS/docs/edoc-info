@@ -1,2 +1,0 @@
-{packages,[]}.
-{modules,[erlfs_adm,erlfs_conf,erlfs_db,erlfs_fs,erlfs_sup]}.
