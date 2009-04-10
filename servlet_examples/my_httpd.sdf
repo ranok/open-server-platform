@@ -92,7 +92,7 @@ handle(File) ->
 	    Res = {data, os:cmd("php-cgi " ++ File)};
 	_ ->
 	    Mime = get_mime(string:to_lower(Type)),
-	    {ok, FP} = file:open(File),
+	    {ok, FP} = file:open(File, [read, binary]),
 	    Res = {handle, Mime, FP}
     end,
     case Res of
