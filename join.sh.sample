@@ -15,11 +15,11 @@ fi
 
 LOADER="-loader inet -hosts"
 
-if [ -a "osp.beam" ]
+if [ -a "ebin/osp.beam" ]
 then
     LOADER=""
     BOOTSERVER=""
 fi
 
 epmd -daemon
-erl -noshell -detached $NAME $NODENAME -id $NODENAME $LOADER $BOOTSERVER -setcookie $COOKIE -s osp join $MASTERNODE
+erl -noshell -detached $NAME $NODENAME -id $NODENAME $LOADER $BOOTSERVER -setcookie $COOKIE -p ./ebin -s osp join $MASTERNODE
