@@ -22,4 +22,4 @@ then
 fi
 
 epmd -daemon
-erl -noshell -detached $NAME $NODENAME -id $NODENAME $LOADER $BOOTSERVER -setcookie $COOKIE -s osp join $MASTERNODE
+erl -noshell -detached $NAME $NODENAME -id $NODENAME $LOADER $BOOTSERVER -pa ./ebin -setcookie $COOKIE -s osp join $MASTERNODE
