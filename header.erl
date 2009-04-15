@@ -20,6 +20,10 @@
 proto() ->
     PROTO.
 
+%% @doc Opens a file for reading or writing
+fopen(Filename, Flags) ->
+    osp_file:fopen(MOD, Filename, Flags).
+
 %% @doc Stores a value in the mnesia database
 store(Key, Val) ->
     osp_mnesia:store(MOD_table, Key, Val).

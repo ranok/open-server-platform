@@ -44,7 +44,8 @@ handlecommand(Sock, Msg) ->
 	    F = fun(Node) -> sendf(Sock, "~p: ~f~n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
 	    sendf(Sock, "Nodes in the cluster and their CPU Utilization: ~n", []),
 	    lists:map(F, [node() | nodes()]),
-	    sendf(Sock, "The following IPs: ~p are allowed to be diskless~n", [erl_boot_server:which_slaves()]);
+	    send(Sock, "The following IPs are allowed to be diskless:\r\n"),
+	    send(Sock, get_ok_slaves());
 	"quit" ->
 	    close(Sock),
 	    exit(normal);
@@ -111,6 +112,7 @@ handlecommand(Sock, Msg) ->
 	    end
     end.
 
+%% @todo This needs to update on every start of a new application
 bkup_db(Node, Type) ->
     Tables = mnesia:system_info(tables),
     F = fun(TableName) ->
@@ -139,6 +141,15 @@ start_db(Node, App) ->
     rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000]),
     ok.
 
+ip_to_string({A, B, C, D}) ->
+    erlang:integer_to_list(A) ++ "." ++ erlang:integer_to_list(B) ++ "." ++ erlang:integer_to_list(C) ++ "." ++ erlang:integer_to_list(D).
+
+get_ok_slaves() ->
+    Slaves = erl_boot_server:which_slaves(),
+    Fun = fun({NM, IP}, A) ->
+		  A ++ "\tIP: " ++ ip_to_string(IP) ++ " Netmask: " ++ ip_to_string(NM) ++ "\r\n"
+	  end,
+    lists:foldl(Fun, [], Slaves).
 
 stop_servlet(App, Node, Sock) ->
     case lists:member(Node, [node() | nodes()]) of
