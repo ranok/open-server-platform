@@ -15,7 +15,7 @@ fi
 
 LOADER="-loader inet -hosts"
 
-if [ -a "osp.beam" ]
+if [ -a "ebin/osp.beam" ]
 then
     LOADER=""
     BOOTSERVER=""
