@@ -1,15 +1,24 @@
 Open Server Platform Admin Guide
-Version 0.2
-4/7/08
+Version 0.3
+5/2/09
 Coyright 2008 Jacob Torrey
 			
 Introduction
 	Welcome to OSP! Hopefully you'll find it as exciting as we do! Let's 
 get started then, shall we?
+
+Requirements
+	Before you can get started, you'll need a few dependancies installed:
+	       -> erlang (HiPE or regular (HiPE reccomended)
+	       -> The XML::Simple perl module
 	
 Starting OSP
-	Once you have the OSP environment installed, edit the osp.conf and run:
-	
+	Once you have the OSP environment downloaded, edit the osp.conf and run:
+	     	      	./setup-osp.sh
+
+	This will setup the Mnesia redundant data store on the node (run this once)
+
+	Now you can run the following command to start the node:
 	 		./start-osp.sh
 	 							
 	This will start an OSP instance on the local machine prepared to server
