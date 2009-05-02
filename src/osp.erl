@@ -6,6 +6,8 @@
 
 -include("../include/conf.hrl").
 
+-define(VERSION, "0.4").
+
 %% @doc Starts the first 'master' node
 %% @spec init() -> {ok, Pid, []} | {error, Reason}
 start() ->
@@ -22,6 +24,7 @@ start() ->
 	{error, Err} ->
 	    {error, Err};
 	_ ->
+	    osp_web:start(),
 	    {ok, Pid}
     end.
 
@@ -42,6 +45,7 @@ setup() ->
 	    net_kernel:start([?NODENAME, shortnames])
     end,
     erlang:set_cookie(node(), ?COOKIE),
+    write_rel(),
     mnesia:create_schema([node()]),
     init:stop().
 
@@ -51,3 +55,22 @@ join([Node]) ->
     application:start(sasl),
     application:start(os_mon),
     net_adm:ping(Node).
+
+get_vsn(Module) ->
+    AppFile = code:lib_dir(Module) ++ "/ebin/" ++ atom_to_list(Module) ++ ".app",
+    {ok, [{application, _App, Attrs}]} = file:consult(AppFile),
+    {value, {vsn, Vsn}} = lists:keysearch(vsn, 1, Attrs),
+    Vsn.
+
+write_rel() ->
+    F = lists:append(["{release, {\"osp_rel\",\"",?VERSION,"\"}, \n",
+                      "{erts,\"",erlang:system_info(version),"\"},\n"
+                      "[{kernel,\"",get_vsn(kernel),"\"},\n",
+                      "{stdlib,\"",get_vsn(stdlib),"\"},\n",
+                      "{inets,\"",get_vsn(inets),"\"},\n",
+                      "{os_mon,\"",get_vsn(os_mon),"\"},\n",
+		      "{sasl,\"",get_vsn(sasl),"\"},\n",
+		      "{mnesia,\"",get_vsn(mnesia),"\"},\n",
+                      "{osp,\"",?VERSION,"\"}]}.\n"]),
+    ok = file:write_file("osp_rel-" ++ ?VERSION ++ ".rel", F),
+    systools:make_script("osp_rel-" ++ ?VERSION, [local]).

@@ -1,4 +1,4 @@
 osp:
 	erlc -o ../ebin *.erl
 clean:
-	-rm ../ebin/osp*.beam *~  ../erl_crash.dump
+	-rm ../ebin/osp*.beam *~  ../erl_crash.dump ../osp_rel*

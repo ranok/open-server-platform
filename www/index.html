@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Open Server Platform Administrative System</title>
+    <script src="jquery.js" type="text/javascript"></script>
+    <script type="text/javascript">//<![CDATA[
+      $(document).ready(function() {
+	      $("#shutdown").click(function() {
+		      $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { alert("Open Server Platform Shutdown") });
+		  });
+	  });
+    //]]></script>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <meta name="keywords" content="erlang, open server platform" />
+    <meta name="author" content="Jacob Torrey" />
+    <meta name="description" content="The homepage for the OSP administration panel" />
+  </head>
+  <body>
+    <p>Please select an action:<br /></p>
+    <ul>
+      <li><button id="shutdown">Shutdown Entire Cluster</button></li>
+    </ul>
+    
+  </body>
+</html>

@@ -7,6 +7,9 @@
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
+% Export the admin functions for the web console
+-export([shutdown_osp/0]).
+
 -include("../include/conf.hrl").
 
 % Import the OSP socket library
@@ -50,17 +53,9 @@ handlecommand(Sock, Msg) ->
 	    close(Sock),
 	    exit(normal);
    	"shutdown" ->
-	    F = fun(Node) ->
-			rpc:call(Node, osp_broker, shutdown, []),
-			rpc:call(Node, init, stop, [])
-		end,
-	    lists:foreach(F, nodes()),
 	    send(Sock, "Shutting down\r\n"),
 	    close(Sock),
-	    lists:foreach(F, nodes()),
-	    osp_broker:stop(osp_admin),
-	    osp_broker:shutdown(),
-	    init:stop();
+	    shutdown_osp();
 	"" ->
 	    ok;
 	Unknown ->
@@ -194,6 +189,18 @@ start_servlet(App, Port, Node) ->
 	false ->
 	    error
     end.
+
+shutdown_osp() ->
+    F = fun(Node) ->
+		rpc:call(Node, osp_broker, shutdown, []),
+		rpc:call(Node, init, stop, [])
+	end,
+    lists:foreach(F, nodes()),
+    lists:foreach(F, nodes()),
+    osp_broker:stop(osp_admin),
+    osp_broker:shutdown(),
+    osp_web:stop(),
+    init:stop().
 
 init() ->
     erl_boot_server:start(['127.0.0.1']),

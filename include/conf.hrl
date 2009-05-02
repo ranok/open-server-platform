@@ -1,4 +1,3 @@
-
 % OSP Server Configuration
 
 % Use FQDNs
@@ -24,3 +23,4 @@
 
 % The prefix of the application file area
 -define(FS_PREFIX, "/tmp").
+
