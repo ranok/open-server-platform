@@ -1,14 +1,13 @@
 %% @author Jacob Torrey
 %% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 -module(osp_web).
--export([start/0, reload/0, stop/1, stop/0, restart/0, clusterwide/3]).
+-export([start/0, reload/0, stop/1, clusterwide/3]).
 
 -define(CONF_FILE, "include/httpd.conf").
 
 %% @doc Starts Inets and the OSP Web server
 %% @spec start() -> {ok, pid()}
 start() ->
-    inets:start(),
     {ok, [Conf]} = file:consult(?CONF_FILE),
     {ok, Pid} = inets:start(httpd, Conf),
     Pid.
@@ -18,16 +17,6 @@ start() ->
 reload() ->
     {ok, [Conf]} = file:consult(?CONF_FILE),
     httpd:reload_config(Conf, non_disturbing).
-
-%% @doc Restarts the web admin panel
-%% @spec restart() -> pid()
-restart() ->
-    stop(),
-    start().
-
-%% @doc Stops all of Inets
-stop() ->
-    inets:stop().
 
 %% @doc Stops the Inets web service
 stop(Pid) ->
