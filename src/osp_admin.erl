@@ -8,7 +8,7 @@
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
 % Export the admin functions for the web console
--export([shutdown_osp/0]).
+-export([shutdown_osp/0, stats_osp/0]).
 
 -include("../include/conf.hrl").
 
@@ -44,11 +44,7 @@ handlecommand(Sock, Msg) ->
 	"help" -> % Print out the help message
 	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n\tstop <appname> <node> - Stops the given servlet on node\n\tmigrate <appname> <fromnode> <tonode> <port> - Migrates a servlet from fromnode to tonode, starting it on the given port\n">>);
 	"stats" -> % Display some stats
-	    F = fun(Node) -> sendf(Sock, "~p: ~f~n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
-	    sendf(Sock, "Nodes in the cluster and their CPU Utilization: ~n", []),
-	    lists:map(F, [node() | nodes()]),
-	    send(Sock, "The following IPs are allowed to be diskless:\r\n"),
-	    send(Sock, get_ok_slaves());
+	    send(Sock, stats_osp());
 	"quit" ->
 	    close(Sock),
 	    exit(normal);
@@ -145,6 +141,12 @@ get_ok_slaves() ->
 		  A ++ "\tIP: " ++ ip_to_string(IP) ++ " Netmask: " ++ ip_to_string(NM) ++ "\r\n"
 	  end,
     lists:foldl(Fun, [], Slaves).
+
+stats_osp() ->
+    F = fun(Node, A) -> A ++ io_lib:format("~p: ~f\r\n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
+    Out1 = "Nodes in the cluster and their CPU Utilization: \r\n",
+    Out2 = lists:foldl(F, Out1, [node() | nodes()]),
+    Out2 ++ "The following IPs are allowed to be diskless:\r\n" ++ get_ok_slaves().
 
 stop_servlet(App, Node, Sock) ->
     case lists:member(Node, [node() | nodes()]) of

@@ -6,11 +6,15 @@
     <title>Open Server Platform Administrative System</title>
     <script src="jquery.js" type="text/javascript"></script>
     <script type="text/javascript">//<![CDATA[
-      $(document).ready(function() {
-	      $("#shutdown").click(function() {
-		      $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { $("#output").append(data); });
-		  });
-	  });
+      $(document).ready(
+			function() {
+			    $("#shutdown").click(function() {
+				    $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { $("#output").append("<br />" + data); });
+				});
+			    $("#stats").click(function() {
+				    $.get("app/osp_web/clusterwide", {operation: "stats"}, function(data) { $("#output").append("<br />" + data); });
+				});
+			});
     //]]></script>
     <link rel="stylesheet" href="style.css" type="text/css" />
     <meta name="keywords" content="erlang, open server platform" />
@@ -18,11 +22,13 @@
     <meta name="description" content="The homepage for the OSP administration panel" />
   </head>
   <body>
-    <p>Please select an action:<br /></p>
+    <h1 class="center">Open Server Platform Web Management Console</h1>
+    <p class="indent bold">Please select an action:<br /></p>
     <ul>
       <li><button id="shutdown">Shutdown Entire Cluster</button></li>
+      <li><button id="stats">Cluster Stats</button></li>
     </ul>
-    <p>Server response:</p>
+    <p class="indent bold">Server response:</p>
     <div id="output">
       
     </div>

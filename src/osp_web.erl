@@ -38,6 +38,11 @@ parse_input(Input) ->
 	end,
     lists:map(F, Args).
 
+%% @doc Converts a UNIX newline to a HTML <br />
+nl2br(Str) ->
+    Tokens = string:tokens(Str, "$\n"),
+    string:join(Tokens, "\n<br />").
+
 clusterwide(Session, _Env, Input) ->
     Args = parse_input(Input),
     {value, {operation, Op}} = lists:keysearch(operation, 1, Args),
@@ -46,6 +51,8 @@ clusterwide(Session, _Env, Input) ->
 	"shutdown" ->
 	    mod_esi:deliver(Session, "OSP Shutdown"),
 	    osp_admin:shutdown_osp();
+	"stats" ->
+	    mod_esi:deliver(Session, nl2br(osp_admin:stats_osp()));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.
