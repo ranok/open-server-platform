@@ -8,7 +8,7 @@
     <script type="text/javascript">//<![CDATA[
       $(document).ready(function() {
 	      $("#shutdown").click(function() {
-		      $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { alert("Open Server Platform Shutdown") });
+		      $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { $("#output").append(data); });
 		  });
 	  });
     //]]></script>
@@ -22,6 +22,9 @@
     <ul>
       <li><button id="shutdown">Shutdown Entire Cluster</button></li>
     </ul>
-    
+    <p>Server response:</p>
+    <div id="output">
+      
+    </div>
   </body>
 </html>

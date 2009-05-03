@@ -44,7 +44,7 @@ clusterwide(Session, _Env, Input) ->
     io:format("~p~n", [Op]),
     case Op of
 	"shutdown" ->
-	    mod_esi:deliver(Session, "shutdown"),
+	    mod_esi:deliver(Session, "OSP Shutdown"),
 	    osp_admin:shutdown_osp();
 	_ ->
 	    mod_esi:deliver(Session, "")
