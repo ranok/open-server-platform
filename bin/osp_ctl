@@ -39,8 +39,9 @@ fi
 
 if [ ${1} == "stats" ]; then
     RET=`echo "stats" | nc localhost 9876`
+    VAL=$?
     RET=`echo "$RET" | sed -e 's/-> //'`
-    if [ $? -eq 1 ]; then
+    if [ $VAL -eq 1 ]; then
 	echo "OSP not started"
 	exit 1
     else
