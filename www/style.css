@@ -1,3 +1,20 @@
+body {
+    background-color: #282828;
+    color: #0099CC;
+    font-family: arial;
+}
+
+button {
+    border: 2px solid #3399CC;
+    background-color: #0099CC;
+    color: #282828;
+    padding: 2px;
+}
+
+.underline {
+    text-decoration: underline;
+}
+
 .center {
     text-align: center;
 }
@@ -8,4 +25,67 @@
 
 .indent {
     text-indent: 1em;
+}
+
+#header {
+    text-align: right;
+}
+
+#nav ul li {
+    padding: 1em;
+    font-weight: bold;
+    border: 1px solid #0099CC;
+    background-color: #484848;
+    display: inline;
+}
+
+#nav {
+    border-top: 1px solid #0099CC;
+    border-bottom: 1px solid #0099CC;
+}
+
+#nav a {
+    color: white;
+    text-decoration: none;
+}
+
+#content {
+    width: 80%;
+    margin: 0 auto;
+}
+
+#status,#control {
+    float: left;
+    width: 49%;
+}
+
+#control ul li {
+    padding-bottom: 1em;
+}
+
+#footer {
+    padding-top: 2cm;
+    clear: both;
+    font-size: smaller;
+}
+
+#footer hr {
+    background-color: #282828;
+    border-top: 1 px solid #0099CC;
+    border-bottom: none;
+    color: #0099CC;
+}
+
+#footer a {
+    color: #0099CC;
+    font-weight: bold;
+    font-size: smaller;
+    text-decoration: none;
+}
+
+#output {
+    width: 95%;
+    overflow: auto;
+    height: 175px;
+    border: 1px solid black;
 }

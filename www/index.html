@@ -14,6 +14,8 @@
 			    $("#stats").click(function() {
 				    $.get("app/osp_web/clusterwide", {operation: "stats"}, function(data) { $("#output").append("<br />" + data); });
 				});
+			    $.get("app/osp_web/clusterwide", {operation: "numnodes"}, function(data) { $("#nodes").val(data) });
+			    $.get("app/osp_web/clusterwide", {operation: "uptime"}, function(data) { $("#uptime").val(data) });
 			});
     //]]></script>
     <link rel="stylesheet" href="style.css" type="text/css" />
@@ -22,15 +24,41 @@
     <meta name="description" content="The homepage for the OSP administration panel" />
   </head>
   <body>
-    <h1 class="center">Open Server Platform Web Management Console</h1>
-    <p class="indent bold">Please select an action:<br /></p>
-    <ul>
-      <li><button id="shutdown">Shutdown Entire Cluster</button></li>
-      <li><button id="stats">Cluster Stats</button></li>
-    </ul>
-    <p class="indent bold">Server response:</p>
-    <div id="output">
-      
+    <div id="header">
+      <p>Welcome Administrator<br />
+      <script type="text/javascript">document.write(new Date());</script></p>
     </div>
-  </body>
+    <div id="nav">
+      <ul>
+	<li><a href="/">Overview</a></li>
+	<li><a href="/app.html">Applications</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1 class="center underline">Cluster-Wide Overview</h1>
+      <div id="control">
+	<h3 class="center">Cluster Controls</h3>
+	<p class="indent bold">Please select an action:<br /></p>
+	<ul>
+	  <li><button id="shutdown">Shutdown Entire Cluster</button></li>
+	  <li><button id="stats">Real-time Cluster Stats</button></li>
+	</ul>
+	<p class="indent bold">Server response:</p>
+	<div id="output">
+	</div>
+      </div>
+      <div id="status">
+	<h3 class="center">Cluster Status</h3>
+	<ul>
+	  <li>Uptime - <span id="uptime"></span></li>
+	  <li>Number of nodes - <span id="nodes"></span></li>
+	</ul>
+      </div>
+    </div>
+    <div id="footer">
+      <hr />
+      <p class="center">&copy; 2009 Jacob Torrey</p>
+    <p class="center"><a href="http://www.openserverplatform.com">Open Server Platform Home</a></p>
+  </div>
+</body>
 </html>
