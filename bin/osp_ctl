@@ -4,6 +4,11 @@
 # (C) 2009 Jacob Torrey
 # http://www.openserverplatform.com
 
+ABSPATH="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+ABSDIR=`dirname $ABSPATH`
+
+cd $ABSDIR
+
 if [ $# -eq 0 ] || [ ${1} == "help" ]
 then
     echo "osp_ctl - A CLI interface to Open Server Platform"
@@ -17,9 +22,13 @@ then
 fi
 
 if [ ${1} == "start" ]; then
+    if [ ! -d ../Mnesia* ] || [ ! -e ../osp_rel*.boot ]; then
+	echo "Detected first run, setting up database"
+	(cd .. && ./setup-osp.sh > /dev/null)
+    fi
     nc localhost -w 0 9876 > /dev/null
     if [ $? -eq 1 ]; then
-	cd .. && ./start-osp.sh
+	(cd .. && ./start-osp.sh)
 	exit 0
     else
 	echo "OSP already running"
