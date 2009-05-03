@@ -194,14 +194,11 @@ start_servlet(App, Port, Node) ->
 
 shutdown_osp() ->
     F = fun(Node) ->
-		rpc:call(Node, osp_broker, shutdown, []),
+		rpc:call(Node, application, stop, [osp]),
 		rpc:call(Node, init, stop, [])
 	end,
     lists:foreach(F, nodes()),
-    lists:foreach(F, nodes()),
-    osp_broker:stop(osp_admin),
-    osp_broker:shutdown(),
-    osp_web:stop(),
+    application:stop(osp),
     init:stop().
 
 init() ->

@@ -24,7 +24,8 @@ fi
 if [ ${1} == "start" ]; then
     if [ ! -d ../Mnesia* ] || [ ! -e ../osp_rel*.boot ]; then
 	echo "Detected first run, setting up database"
-	(cd .. && ./setup-osp.sh > /dev/null)
+	(cd .. && ./setup-osp.sh)
+	sleep 1
     fi
     nc localhost -w 0 9876 > /dev/null
     if [ $? -eq 1 ]; then

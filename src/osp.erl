@@ -2,7 +2,7 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
 %% @doc The OSP jumping off module
 -module(osp).
--export([start/0, stop/0, join/1, setup/0]).
+-export([start/0, stop/1, join/1, setup/0]).
 
 -include("../include/conf.hrl").
 
@@ -24,16 +24,15 @@ start() ->
 	{error, Err} ->
 	    {error, Err};
 	_ ->
-	    osp_web:start(),
-	    {ok, Pid}
+	    {ok, Pid, osp_web:start()}
     end.
 
 %% @doc Stops OSP on this node
 %% @spec stop() -> ok
-stop() ->
+stop(Pid) ->
     osp_broker:stop(osp_admin),
     osp_broker:shutdown(),
-    ok.
+    osp_web:stop(Pid).
 
 %% @doc Setups mnesia for the first time
 %% @spec setup() -> ok

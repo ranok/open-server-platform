@@ -9,5 +9,5 @@
 init(_Args) ->
     osp:start().
 
-terminate(_Reason, _State) ->
-    osp:stop().
+terminate(_Reason, State) ->
+    osp:stop(State).

@@ -1,7 +1,7 @@
 %% @author Jacob Torrey
 %% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 -module(osp_web).
--export([start/0, reload/0, stop/0, restart/0, clusterwide/3]).
+-export([start/0, reload/0, stop/1, stop/0, restart/0, clusterwide/3]).
 
 -define(CONF_FILE, "include/httpd.conf").
 
@@ -10,7 +10,8 @@
 start() ->
     inets:start(),
     {ok, [Conf]} = file:consult(?CONF_FILE),
-    inets:start(httpd, Conf).
+    {ok, Pid} = inets:start(httpd, Conf),
+    Pid.
 
 %% @doc Reloads the webserver configuration from file
 %% @spec reload() -> ok
@@ -19,15 +20,18 @@ reload() ->
     httpd:reload_config(Conf, non_disturbing).
 
 %% @doc Restarts the web admin panel
-%% @spec restart() -> {ok, pid()}
+%% @spec restart() -> pid()
 restart() ->
     stop(),
     start().
 
-%% @doc Stops the Inets daemon and the web service
-%% @todo This needs to be made more generic for the case of other inets services running
+%% @doc Stops all of Inets
 stop() ->
     inets:stop().
+
+%% @doc Stops the Inets web service
+stop(Pid) ->
+    inets:stop(httpd, Pid).
 
 %% @doc Parses an input string into a list of tuples
 parse_input(Input) ->
@@ -46,7 +50,6 @@ nl2br(Str) ->
 clusterwide(Session, _Env, Input) ->
     Args = parse_input(Input),
     {value, {operation, Op}} = lists:keysearch(operation, 1, Args),
-    io:format("~p~n", [Op]),
     case Op of
 	"shutdown" ->
 	    mod_esi:deliver(Session, "OSP Shutdown"),

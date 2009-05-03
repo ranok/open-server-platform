@@ -1,16 +1,21 @@
 Open Server Platform Admin Guide
-Version 0.2
-4/7/08
+Version 0.4
+5/3/09
 Coyright 2008 Jacob Torrey
 			
 Introduction
 	Welcome to OSP! Hopefully you'll find it as exciting as we do! Let's 
 get started then, shall we?
-	
+
+Requirements
+	Before you can get started, you'll need a few dependancies installed:
+	       -> erlang (HiPE or regular (HiPE reccomended)
+	       -> The XML::Simple perl module
+	       -> Netcat
+
 Starting OSP
-	Once you have the OSP environment installed, edit the osp.conf and run:
-	
-	 		./start-osp.sh
+	Once you have the OSP environment downloaded, edit the osp.conf and run:
+	 		./bin/osp_ctl start
 	 							
 	This will start an OSP instance on the local machine prepared to server
 code to remote nodes and running the Mnesia shared state database. It will
@@ -18,6 +23,11 @@ also start the administrator console listening on port 9876. Once this script
 is complete, telnet to 127.0.0.1 on port 9876. You are now in the admin 
 console for OSP, from whence you can see stats about the current system, add
 other nodes to the OSP cluster, and manage running applications.
+      In addition to the telnet interface, there is a CLI script in ./bin that
+provides a more scriptable interface to the OSP cluster.
+      As of version 0.4, there is also a web management console which can be
+found at http://localhost:9877 that provides a more user friendly management
+interface.
 
 Adding other nodes
 	To add other diskless nodes (nodes without a copy of OSP, just copy 
