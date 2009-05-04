@@ -14,8 +14,8 @@
 			    $("#stats").click(function() {
 				    $.get("app/osp_web/clusterwide", {operation: "stats"}, function(data) { $("#output").append("<br />" + data); });
 				});
-			    $.get("app/osp_web/clusterwide", {operation: "numnodes"}, function(data) { $("#nodes").val(data) });
-			    $.get("app/osp_web/clusterwide", {operation: "uptime"}, function(data) { $("#uptime").val(data) });
+			    $("#nodes").load("app/osp_web/clusterwide?operation=nodes");
+			    $("#uptime").load("app/osp_web/clusterwide?operation=uptime");
 			});
     //]]></script>
     <link rel="stylesheet" href="style.css" type="text/css" />

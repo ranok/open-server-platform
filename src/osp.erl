@@ -8,6 +8,21 @@
 
 -define(VERSION, "0.4").
 
+%% @doc Sets up the environment for OSP to load, since the boot loader doesn't do it's job
+%% kickoff() ->
+%%     case ?USEFQDN of
+%% 	true ->
+%% 	    net_kernel:start([?NODENAME]);
+%% 	false ->
+%% 	    net_kernel:start([?NODENAME, shortnames])
+%%     end,
+%%     erlang:set_cookie(node(), ?COOKIE),
+%%     application:start(sasl),
+%%     application:start(os_mon),
+%%     application:start(inets),
+%%     application:start(mnesia),
+%%     application:start(osp).
+
 %% @doc Starts the first 'master' node
 %% @spec init() -> {ok, Pid, []} | {error, Reason}
 start() ->
@@ -66,10 +81,9 @@ write_rel() ->
                       "{erts,\"",erlang:system_info(version),"\"},\n"
                       "[{kernel,\"",get_vsn(kernel),"\"},\n",
                       "{stdlib,\"",get_vsn(stdlib),"\"},\n",
-                      "{inets,\"",get_vsn(inets),"\"},\n",
                       "{os_mon,\"",get_vsn(os_mon),"\"},\n",
+                      "{inets,\"",get_vsn(inets),"\"},\n",
 		      "{sasl,\"",get_vsn(sasl),"\"},\n",
-		      "{mnesia,\"",get_vsn(mnesia),"\"},\n",
                       "{osp,\"",?VERSION,"\"}]}.\n"]),
     ok = file:write_file("osp_rel-" ++ ?VERSION ++ ".rel", F),
     systools:make_script("osp_rel-" ++ ?VERSION, [local]).

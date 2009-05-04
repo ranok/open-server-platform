@@ -45,6 +45,10 @@ clusterwide(Session, _Env, Input) ->
 	    osp_admin:shutdown_osp();
 	"stats" ->
 	    mod_esi:deliver(Session, nl2br(osp_admin:stats_osp()));
+	"uptime" ->
+	    mod_esi:deliver(Session, osp_admin:uptime_osp());
+	"nodes" ->
+	    mod_esi:deliver(Session, erlang:integer_to_list(length([node() | nodes()])));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.

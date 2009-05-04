@@ -8,12 +8,23 @@
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
 % Export the admin functions for the web console
--export([shutdown_osp/0, stats_osp/0]).
+-export([shutdown_osp/0, stats_osp/0, uptime_osp/0]).
 
 -include("../include/conf.hrl").
 
 % Import the OSP socket library
 -import(osp_socket, [send/2, recv/2, sendf/3, close/1]).
+
+% Define the Mnesia record
+-record(osp_table, {key, val}).
+
+%% @doc Stores a value in the mnesia database
+store(Key, Val) ->
+    osp_mnesia:store(osp_admin_table, Key, Val).
+
+%% @doc Gets a value from the mnesia database
+retrieve(Key) ->
+    osp_mnesia:retrieve(osp_admin_table, Key).
 
 %% @doc Returns the proto
 proto() ->
@@ -21,6 +32,18 @@ proto() ->
 
 %% @doc The mnesia startup routine
 start_mnesia() ->
+    case lists:member(mnesia_sup, erlang:registered()) of
+	true ->
+	    ok;
+	false ->
+	    mnesia:start()
+    end,
+    case catch(mnesia:table_info(osp_admin_table, all)) of
+	{'EXIT', _} ->
+	    mnesia:create_table(osp_admin_table, [{record_name, osp_table}, {disc_copies, [node()]}, {attributes, record_info(fields, osp_table)}]);
+	_ ->
+	    ok
+    end,
     ok.
 
 %% @doc The main server loop
@@ -143,7 +166,7 @@ get_ok_slaves() ->
     lists:foldl(Fun, [], Slaves).
 
 stats_osp() ->
-    F = fun(Node, A) -> A ++ io_lib:format("~p: ~f\r\n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
+    F = fun(Node, A) -> A ++ io_lib:format("~p: ~.2f\r\n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
     Out1 = "Nodes in the cluster and their CPU Utilization: \r\n",
     Out2 = lists:foldl(F, Out1, [node() | nodes()]),
     Out2 ++ "The following IPs are allowed to be diskless:\r\n" ++ get_ok_slaves().
@@ -192,13 +215,17 @@ start_servlet(App, Port, Node) ->
 	    error
     end.
 
+uptime_osp() ->
+    Seconds = retrieve(uptime),
+    NSeconds = calendar:datetime_to_gregorian_seconds(erlang:universaltime()),
+    {{_, _, Days}, {Hours, Mins, Secs}} = calendar:gregorian_seconds_to_datetime(NSeconds - Seconds),
+    erlang:integer_to_list(Days - 1) ++ " days " ++ erlang:integer_to_list(Hours) ++ " hrs " ++ erlang:integer_to_list(Mins) ++ " mins " ++ erlang:integer_to_list(Secs) ++ " secs".
+
 shutdown_osp() ->
     F = fun(Node) ->
-		rpc:call(Node, application, stop, [osp]),
 		rpc:call(Node, init, stop, [])
 	end,
     lists:foreach(F, nodes()),
-    application:stop(osp),
     init:stop().
 
 init() ->
@@ -211,6 +238,7 @@ init() ->
 		start_servlet(App, Port, node())
 	end,
     lists:foreach(F, ?AUTO_STARTED),
+    store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
     ok.
 
 cleanup() ->
