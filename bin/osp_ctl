@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# OSP Control Panel
+# (C) 2009 Jacob Torrey
+# http://www.openserverplatform.com
+
+ABSPATH="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}")"
+ABSDIR=`dirname $ABSPATH`
+
+cd $ABSDIR
+
+if [ $# -eq 0 ] || [ ${1} == "help" ]
+then
+    echo "osp_ctl - A CLI interface to Open Server Platform"
+    echo "(C) 2009 http://www.openserverplatform.com"
+    echo "Commands:"
+    echo "    help - display this help"
+    echo "    start - start the OSP cluster"
+    echo "    stop - stop the OSP cluster"
+    echo "    stats - print some information about the running cluster"
+    exit 0
+fi
+
+if [ ${1} == "start" ]; then
+    if [ ! -d ../Mnesia* ] || [ ! -e ../osp_rel*.boot ]; then
+	echo "Detected first run, setting up database"
+	(cd .. && ./setup-osp.sh)
+	sleep 1
+    fi
+    nc localhost -w 0 9876 > /dev/null
+    if [ $? -eq 1 ]; then
+	(cd .. && ./start-osp.sh)
+	exit 0
+    else
+	echo "OSP already running"
+	exit 1
+    fi
+fi
+
+if [ ${1} == "stop" ]; then
+    echo "shutdown" | nc localhost 9876 > /dev/null
+    if [ $? -eq 1 ]; then
+	echo "OSP not started"
+	exit 1
+    else
+	exit 0
+    fi
+fi
+
+if [ ${1} == "stats" ]; then
+    RET=`echo "stats" | nc localhost 9876`
+    VAL=$?
+    RET=`echo "$RET" | sed -e 's/-> //'`
+    if [ $VAL -eq 1 ]; then
+	echo "OSP not started"
+	exit 1
+    else
+	echo "$RET"
+	exit 0
+    fi
+fi
+

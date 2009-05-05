@@ -12,7 +12,6 @@
 %% @doc Shuts down the Mnesia database
 %% @spec shutdown() -> ok
 shutdown() -> 
-    mnesia:stop(),
     ok.
 
 %% @doc Stops the server broker and all it's children processes
@@ -33,7 +32,7 @@ start(Name, Port) ->
 	    CP = osp_proto:set_control(apply(Name, proto, [])),
 	    CP(LSock, Pid),
 	    erlang:register(Name, Pid),
-	    ok;
+	    Pid;
 	Error ->
 	    {error, Error}
     end.

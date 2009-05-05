@@ -6,8 +6,8 @@
 
 -export([start/2, stop/1]).
 
-start(_Args) ->
-    osp:start().
+start(_Type, _StartArgs) ->
+    supervisor_bridge:start_link({local, osp_supervisor}, osp_sup, []).
 
 stop(_State) ->
-    osp:stop().
+    exit(whereis(osp_supervisor), shutdown).
