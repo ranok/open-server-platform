@@ -2,4 +2,4 @@
 
 echo "Setting up OSP"
 epmd -daemon
-erl -smp auto -detached -pa ./ebin -run osp setup
+erl -smp auto -detached -pa ./ebin -mnesia dir "mnesia" -run osp setup

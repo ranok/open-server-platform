@@ -18,6 +18,12 @@ then
     echo "    start - start the OSP cluster"
     echo "    stop - stop the OSP cluster"
     echo "    stats - print some information about the running cluster"
+    echo "    webadmin - opens the web based administration system"
+    exit 0
+fi
+
+if [ ${1} == "webadmin" ]; then
+    xdg-open http://localhost:9877
     exit 0
 fi
 
