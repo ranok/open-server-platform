@@ -3,6 +3,8 @@
 %% @doc An OSP servlet
 -module(MOD).
 
+-behavior(osp_servlet).
+
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 

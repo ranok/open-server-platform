@@ -1,11 +1,12 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @copyright 2008 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @doc Socket operations for OSP programs
 -module(osp_socket).
 
 -export([send/2, recv/2, sendf/3, close/1]).
 
-%% @doc A type inspecific send function
+%% @doc A type/protocol inspecific send function
+%% @spec spec(tuple(), any()) -> ok
 send({udp, {Sock, Addr, Port}}, Data) when is_binary(Data) ->
     gen_udp:send(Sock, Addr, Port, Data);
 send({udp, {Sock, Addr, Port}}, Data) when is_list(Data) ->
@@ -19,16 +20,20 @@ send({tcp, Sock}, Data) when is_list(Data) ->
 send({tcp, Sock}, Data) when is_atom(Data) ->
     gen_tcp:send(Sock, erlang:term_to_binary(Data)).
 
+%% @doc A formatted send that uses the same arguments as io:format
+%% @spec sendf(tuple(), list(), list()
 sendf(Sock, Template, Args) ->
     send(Sock, io_lib:format(Template, Args)).
 
+%% @doc Closes a socket (protocol inspecific)
+%% @spec close(tuple()) -> ok
 close({tcp, Sock}) ->
     gen_tcp:close(Sock);
 close({udp, {_Sock, _Addr, _Port}}) ->
     ok.
 
-%% @doc A 'safe' receive
-%% @spec recv(socket(), int()) -> binary() | {error, closed}
+%% @doc A 'safe' receive. A length of 0 will get a 'line' of data
+%% @spec recv(tuple(), int()) -> binary() | {error, closed}
 recv({tcp, Sock}, Len) ->
     case gen_tcp:recv(Sock, Len) of
 	{ok, Bin} ->

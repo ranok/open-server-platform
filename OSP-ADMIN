@@ -14,7 +14,7 @@ Requirements
 	       -> Netcat
 
 Starting OSP
-	Once you have the OSP environment downloaded, edit the osp.conf and run:
+	Once you have the OSP environment downloaded, edit the include/osp.conf and run:
 	 		./bin/osp_ctl start
 	 							
 	This will start an OSP instance on the local machine prepared to server

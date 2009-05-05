@@ -1,8 +1,9 @@
 %% @author Jacob Ian Torrey <torreyji@clarkson.edu>
-%% @copyright 2009 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @version 0.4
-%% @doc The OSP administrative functions
+%% @doc Provides an interface to administer the OSP cluster
 -module(osp_admin).
+-behavior(osp_servlet).
 
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
@@ -10,6 +11,7 @@
 % Export the admin functions for the web console
 -export([shutdown_osp/0, stats_osp/0, uptime_osp/0]).
 
+% Include the OSP configuration
 -include("../include/conf.hrl").
 
 % Import the OSP socket library
@@ -19,6 +21,7 @@
 -record(osp_table, {key, val}).
 
 %% @doc Stores a value in the mnesia database
+%% @spec store(atom(), any()) -> ok
 store(Key, Val) ->
     osp_mnesia:store(osp_admin_table, Key, Val).
 
@@ -26,11 +29,13 @@ store(Key, Val) ->
 retrieve(Key) ->
     osp_mnesia:retrieve(osp_admin_table, Key).
 
-%% @doc Returns the proto
+%% @doc Returns the protocol for the application (this is a TCP applcation)
+%% @spec proto() -> tcp
 proto() ->
     tcp.
 
-%% @doc The mnesia startup routine
+%% @doc The mnesia startup routine for osp_admin
+%% @spec start_mnesia() -> ok
 start_mnesia() ->
     case lists:member(mnesia_sup, erlang:registered()) of
 	true ->
@@ -47,6 +52,7 @@ start_mnesia() ->
     ok.
 
 %% @doc The main server loop
+%% @spec server(tuple()) -> none()
 server(Sock) ->
     {tcp, S} = Sock,
     RH = inet:peername(S),
@@ -165,6 +171,8 @@ get_ok_slaves() ->
 	  end,
     lists:foldl(Fun, [], Slaves).
 
+%% @doc This returns a string of the OSP cluster statistics
+%% @spec stats_osp() -> list()
 stats_osp() ->
     F = fun(Node, A) -> A ++ io_lib:format("~p: ~.2f\r\n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
     Out1 = "Nodes in the cluster and their CPU Utilization: \r\n",
@@ -215,12 +223,16 @@ start_servlet(App, Port, Node) ->
 	    error
     end.
 
+%% @doc Returns a human readable string of the cluster uptime
+%% @spec uptime_osp() -> list()
 uptime_osp() ->
     Seconds = retrieve(uptime),
     NSeconds = calendar:datetime_to_gregorian_seconds(erlang:universaltime()),
     {{_, _, Days}, {Hours, Mins, Secs}} = calendar:gregorian_seconds_to_datetime(NSeconds - Seconds),
     erlang:integer_to_list(Days - 1) ++ " days " ++ erlang:integer_to_list(Hours) ++ " hrs " ++ erlang:integer_to_list(Mins) ++ " mins " ++ erlang:integer_to_list(Secs) ++ " secs".
 
+%% @doc Shuts down the entire OSP cluster, and quits the Erlang VM
+%% @spec shutdown_osp -> ok
 shutdown_osp() ->
     F = fun(Node) ->
 		rpc:call(Node, init, stop, [])
@@ -228,6 +240,8 @@ shutdown_osp() ->
     lists:foreach(F, nodes()),
     init:stop().
 
+%% @doc Routine for starting the master boot server and autostarted applications
+%% @spec init() -> ok
 init() ->
     erl_boot_server:start(['127.0.0.1']),
     DL = fun(IP) ->
@@ -241,6 +255,8 @@ init() ->
     store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
     ok.
 
+%% @doc A callback for the OSP broker service
+%% @spec cleanup() -> ok
 cleanup() ->
     ok.
   

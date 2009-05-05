@@ -1,5 +1,5 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @copyright 2008 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @doc A socket request broker
 -module(osp_broker).
 -author('Jacob Torrey <torreyji@clarkson.edu>').

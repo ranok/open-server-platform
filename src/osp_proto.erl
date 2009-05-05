@@ -1,5 +1,5 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @copyright 2008 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @doc A module for abstracting protocols from OSP servlets
 -module(osp_proto).
 

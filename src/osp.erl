@@ -1,30 +1,15 @@
-%% @copyright 2008 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @doc The OSP jumping off module
+%% @doc The exports for controlling the OSP system as a whole
 -module(osp).
--export([start/0, stop/1, join/1, setup/0]).
+-export([start/0, stop/1, join/1, setup/0, gen_docs/0]).
 
 -include("../include/conf.hrl").
 
 -define(VERSION, "0.4").
 
-%% @doc Sets up the environment for OSP to load, since the boot loader doesn't do it's job
-%% kickoff() ->
-%%     case ?USEFQDN of
-%% 	true ->
-%% 	    net_kernel:start([?NODENAME]);
-%% 	false ->
-%% 	    net_kernel:start([?NODENAME, shortnames])
-%%     end,
-%%     erlang:set_cookie(node(), ?COOKIE),
-%%     application:start(sasl),
-%%     application:start(os_mon),
-%%     application:start(inets),
-%%     application:start(mnesia),
-%%     application:start(osp).
-
 %% @doc Starts the first 'master' node
-%% @spec init() -> {ok, Pid, []} | {error, Reason}
+%% @spec start() -> {ok, Pid, pid()} | {error, Reason}
 start() ->
     case ?USEFQDN of
 	true ->
@@ -43,13 +28,13 @@ start() ->
     end.
 
 %% @doc Stops OSP on this node
-%% @spec stop() -> ok
+%% @spec stop(Pid) -> ok
 stop(Pid) ->
     osp_broker:stop(osp_admin),
     osp_broker:shutdown(),
     osp_web:stop(Pid).
 
-%% @doc Setups mnesia for the first time
+%% @doc Setups mnesia and the OTP rel scripts for the first time
 %% @spec setup() -> ok
 setup() ->
     case ?USEFQDN of
@@ -70,12 +55,16 @@ join([Node]) ->
     application:start(os_mon),
     net_adm:ping(Node).
 
+%% @doc Dynamically gets the version of all the required applications to run OSP
+%% @spec get_vsn(atom()) -> list()
 get_vsn(Module) ->
     AppFile = code:lib_dir(Module) ++ "/ebin/" ++ atom_to_list(Module) ++ ".app",
     {ok, [{application, _App, Attrs}]} = file:consult(AppFile),
     {value, {vsn, Vsn}} = lists:keysearch(vsn, 1, Attrs),
     Vsn.
 
+%% @doc Writes the .rel file and generates the boot scripts for the first OSP run
+%% @spec write_rel() -> ok
 write_rel() ->
     F = lists:append(["{release, {\"osp_rel\",\"",?VERSION,"\"}, \n",
                       "{erts,\"",erlang:system_info(version),"\"},\n"
@@ -87,3 +76,8 @@ write_rel() ->
                       "{osp,\"",?VERSION,"\"}]}.\n"]),
     ok = file:write_file("osp_rel-" ++ ?VERSION ++ ".rel", F),
     systools:make_script("osp_rel-" ++ ?VERSION, [local]).
+
+%% @doc Provides an export to regenerate the documentation with edoc
+%% @spec gen_docs() -> ok
+gen_docs() ->
+    edoc:application(osp, ".", []).

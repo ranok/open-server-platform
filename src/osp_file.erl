@@ -1,5 +1,5 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @copyright 2009 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @doc File operations for OSP programs
 -module(osp_file).
 
@@ -18,7 +18,7 @@ call_func(M, F, A) ->
     Ret.
 
 %% @doc Opens a file for reading or writing
-%% @spec fopen(list(), list()) -> io_device() | {err, list()}
+%% @spec fopen(list(), list(), list()) -> io_device() | {err, list()}
 %% @todo Harden the file jailing system
 fopen(App, Filename, Flags) ->
     Filename2 = ?FS_PREFIX ++ "/" ++ App ++ "/" ++ Filename,

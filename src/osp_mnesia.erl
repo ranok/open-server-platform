@@ -1,4 +1,4 @@
-%% @copyright 2008 Jacob Torrey
+%% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @author Jacob Torrey <torreyji@clarkson.edu>
 %% @doc A Mnesia interface for OSP
 -module(osp_mnesia).
@@ -37,7 +37,7 @@ store(Tab, Key, Val) ->
     ok.
 
 %% @doc Retrieves the value associated with the key from the database
-%% @spec(name(), name()) -> any()
+%% @spec(name(), name()) -> any() | undefined
 retrieve(Tab, Key) ->
     case get(atomic) of
 	undefined ->
