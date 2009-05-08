@@ -2,7 +2,6 @@
 %% @version VSN
 %% @doc An OSP servlet
 -module(MOD).
-
 -behavior(osp_servlet).
 
 % Export OSP server callback
