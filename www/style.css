@@ -89,3 +89,28 @@ button {
     height: 175px;
     border: 1px solid black;
 }
+
+#apps,#nodes {
+    padding: 1em;
+    padding-top: 0px;
+}
+
+#nodes {
+    padding-bottom: 5cm;
+}
+
+.border {
+    border: 1px solid #0099CC;
+}
+
+.droppable {
+    display: inline;
+    padding-bottom: 4.5em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+}
+
+.draggable {
+    border: 2px solid #0099CC;
+    padding: 1px;
+}

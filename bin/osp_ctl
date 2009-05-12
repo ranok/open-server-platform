@@ -28,7 +28,7 @@ if [ ${1} == "webadmin" ]; then
 fi
 
 if [ ${1} == "start" ]; then
-    if [ ! -d ../Mnesia* ] || [ ! -e ../osp_rel*.boot ]; then
+    if [ ! -d ../mnesia ] || [ ! -e ../osp_rel*.boot ]; then
 	echo "Detected first run, setting up database"
 	(cd .. && ./setup-osp.sh)
 	sleep 1

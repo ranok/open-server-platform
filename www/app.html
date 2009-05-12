@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Open Server Platform Administrative System</title>
+    <link rel="stylesheet" href="jquery-ui.css" type="text/css" />
+    <script src="jquery.js" type="text/javascript"></script>
+    <script src="jquery-ui.js" type="text/javascript"></script>
+    <script src="app.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+    <meta name="keywords" content="erlang, open server platform" />
+    <meta name="author" content="Jacob Torrey" />
+    <meta name="description" content="The homepage for the OSP administration panel" />
+  </head>
+  <body>
+    <div id="header">
+      <p>Welcome Administrator<br />
+      <script type="text/javascript">document.write(new Date());</script></p>
+    </div>
+    <div id="nav">
+      <ul>
+	<li><a href="/">Overview</a></li>
+	<li><a href="/app.html">Applications</a></li>
+      </ul>
+    </div>
+    <div id="content">
+      <h1 class="center underline">Cluster Application Control</h1>
+      <div id="apps" class="border">
+	<h3 class="center">Available Applications</h3>
+	<span class="draggable border" id="osp_admin">osp_admin Port: <input type="text" style="width: 2em;" id="osp_admin-port" /></span>
+      </div>
+      <br />
+      <div id="nodes" class="border">
+	<h3 class="center">Running Nodes</h3>
+	<ul>
+	  <li class="droppable border" id="master@localhost">Master@localhost:<br /></li>
+	</ul>
+      </div>
+    </div>
+    <div id="footer">
+      <hr />
+      <p class="center">&copy; 2009 Jacob Torrey</p>
+    <p class="center"><a href="http://www.openserverplatform.com">Open Server Platform Home</a></p>
+  </div>
+</body>
+</html>
