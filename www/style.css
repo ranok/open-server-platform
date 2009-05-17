@@ -103,14 +103,21 @@ button {
     border: 1px solid #0099CC;
 }
 
+.node {
+    width: 6cm;
+}
+
 .droppable {
-    display: inline;
-    padding-bottom: 4.5em;
-    padding-left: 1.5em;
-    padding-right: 1.5em;
+    padding-bottom: 1em;
 }
 
 .draggable {
+    width: 4cm;
+    text-indent: 2px;
     border: 2px solid #0099CC;
     padding: 1px;
+}
+
+ul {
+    list-style-type: none;
 }

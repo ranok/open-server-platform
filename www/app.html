@@ -28,14 +28,18 @@
       <h1 class="center underline">Cluster Application Control</h1>
       <div id="apps" class="border">
 	<h3 class="center">Available Applications</h3>
-	<span class="draggable border" id="osp_admin">osp_admin Port: <input type="text" style="width: 2em;" id="osp_admin-port" /></span>
-      </div>
-      <br />
-      <div id="nodes" class="border">
-	<h3 class="center">Running Nodes</h3>
 	<ul>
-	  <li class="droppable border" id="master@localhost">Master@localhost:<br /></li>
+	  <li class="draggable border" id="osp_admin">osp_admin Port: <input type="text" style="width: 2em;" id="osp_admin-port" /></li>
 	</ul>
+	</div>
+      <br />
+      <div id="nodes" class="border sortable">
+	<h3 class="center">Running Nodes</h3>
+	  <div class="border node" id="master@localhost"><h4 class="center">Master@localhost</h4>
+	    <ul class="sortable droppable">
+	      <li></li>
+	    </ul>
+	  </div>
       </div>
     </div>
     <div id="footer">
