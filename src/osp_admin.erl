@@ -9,7 +9,7 @@
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
 % Export the admin functions for the web console
--export([shutdown_osp/0, stats_osp/0, uptime_osp/0]).
+-export([shutdown_osp/0, stats_osp/0, uptime_osp/0, appnode/0]).
 
 % Include the OSP configuration
 -include("../include/conf.hrl").
@@ -50,6 +50,11 @@ start_mnesia() ->
 	    ok
     end,
     ok.
+
+%% @doc Returns the App-Node listing for the cluster
+%% @spec appnode() -> list()
+appnode() ->
+    retrieve(appnode).
 
 %% @doc The main server loop
 %% @spec server(tuple()) -> none()
@@ -188,6 +193,7 @@ stop_servlet(App, Node, Sock) ->
 		true->
 		    rpc:call(Node, osp_broker, stop, [App])
 	    end,
+	    del_app_from_list(Node, App),
 	    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
 	false ->
 	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
@@ -218,6 +224,7 @@ start_servlet(App, Port, Node) ->
 		    start_db(Node, App),
 		    rpc:call(Node, osp_broker, start, [App, Port])
 	    end,
+	    add_app_to_list(Node, App, Port),
 	    ok;
 	false ->
 	    error
@@ -253,10 +260,27 @@ init() ->
 	end,
     lists:foreach(F, ?AUTO_STARTED),
     store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
+    store(nodeapp, [{node(), [{osp_admin, ?ADMINPORT}]}]),
     ok.
 
 %% @doc A callback for the OSP broker service
 %% @spec cleanup() -> ok
 cleanup() ->
     ok.
-  
+
+del_app_from_list(Node, App) ->
+    NodeApp = retrieve(nodeapp),
+    {Node, AppList} = lists:keyfind(Node, 1, NodeApp),
+    AL2 = lists:keydelete(App, 1, AppList),
+    store(nodeapp, lists:keyreplace(Node, 1, NodeApp, {Node, AL2})),
+    ok.
+
+add_app_to_list(Node, App, Port) ->
+    Nodeapp = retrieve(nodeapp),
+    case lists:keyfind(Node, 1, Nodeapp) of
+	false ->
+	    store(nodeapp, [{Node, [{App, Port}]} | Nodeapp]);
+	{Node, AppList} ->
+	    store(nodeapp, lists:keyreplace(Node, 1, Nodeapp, {Node, AppList ++ [{App, Port}]}))
+    end,
+    ok.
