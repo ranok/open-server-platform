@@ -268,6 +268,8 @@ init() ->
 cleanup() ->
     ok.
 
+%% @doc Deletes an application from the list of running applications
+%% @spec del_app_from_list(atom(), atom()) -> ok
 del_app_from_list(Node, App) ->
     NodeApp = retrieve(nodeapp),
     {Node, AppList} = lists:keyfind(Node, 1, NodeApp),
@@ -275,6 +277,8 @@ del_app_from_list(Node, App) ->
     store(nodeapp, lists:keyreplace(Node, 1, NodeApp, {Node, AL2})),
     ok.
 
+%% @doc Adds an application to the list of running applications
+%% @spec add_app_to_list(atom(), atom(), integer()) -> ok
 add_app_to_list(Node, App, Port) ->
     Nodeapp = retrieve(nodeapp),
     case lists:keyfind(Node, 1, Nodeapp) of
