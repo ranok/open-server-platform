@@ -66,3 +66,5 @@ if [ ${1} == "stats" ]; then
     fi
 fi
 
+echo "Sorry, invalid command, try 'help'"
+exit 1
