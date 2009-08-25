@@ -1,4 +1,4 @@
 {application,osp}.
 {packages,[]}.
-{modules,[osp,osp_app,osp_broker,osp_file,osp_mnesia,
-          osp_proto,osp_servlet,osp_sup,osp_web]}.
+{modules,[osp,osp_app,osp_broker,osp_file,osp_mnesia,osp_proto,osp_servlet,
+          osp_sup,osp_web]}.

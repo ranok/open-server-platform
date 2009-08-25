@@ -209,6 +209,7 @@ start_servlet(App, Port, Node, Sock) ->
 		    start_db(Node, App),
 		    rpc:call(Node, osp_broker, start, [App, Port])
 	    end,
+	    add_app_to_list(Node, App, Port),
 	    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
 	false ->
 	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")

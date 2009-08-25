@@ -34,7 +34,7 @@ close(FP);
 open(FP, ">>$module.erl");
 print FP $cleanup;
 close(FP);
-`erlc $module.erl`;
-`rm $module.erl`;
+#`erlc $module.erl`;
+#`rm $module.erl`;
 
 print "$module generated successfully!\nRun erlc $module.erl to compile\n";

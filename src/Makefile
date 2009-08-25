@@ -7,6 +7,6 @@ hipe:
 	erlc -smp +"[native, {hipe, [o3]}]" -o ../ebin *.erl
 	rm osp_servlet.beam
 clean:
-	-rm ../ebin/osp*.beam *~  ../erl_crash.dump ../osp_rel*
+	-rm ../ebin/osp*.beam *~  ../erl_crash.dump ../osp_rel* ../mnesia/*
 docs:
 	cd .. && erl -pa ./ebin -detached -s osp gen_docs
