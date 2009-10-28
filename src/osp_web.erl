@@ -57,3 +57,4 @@ clusterwide(Session, _Env, Input) ->
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.
+

@@ -6,17 +6,7 @@
     <title>Open Server Platform Administrative System</title>
     <script src="jquery.js" type="text/javascript"></script>
     <script type="text/javascript">//<![CDATA[
-      $(document).ready(
-			function() {
-			    $("#shutdown").click(function() {
-				    $.get("app/osp_web/clusterwide", {operation: "shutdown"}, function(data) { $("#output").append("<br />" + data); });
-				});
-			    $("#stats").click(function() {
-				    $.get("app/osp_web/clusterwide", {operation: "stats"}, function(data) { $("#output").append("<br />" + data); });
-				});
-			    $("#nodes").load("app/osp_web/clusterwide?operation=nodes");
-			    $("#uptime").load("app/osp_web/clusterwide?operation=uptime");
-			});
+      $(document).ready();
     //]]></script>
     <link rel="stylesheet" href="style.css" type="text/css" />
     <meta name="keywords" content="erlang, open server platform" />
@@ -36,25 +26,12 @@
       </ul>
     </div>
     <div id="content">
-      <h1 class="center underline">Cluster-Wide Overview</h1>
-      <div id="control">
-	<h3 class="center">Cluster Controls</h3>
-	<p class="indent bold">Please select an action:<br /></p>
-	<ul>
-	  <li><button id="shutdown">Shutdown Entire Cluster</button></li>
-	  <li><button id="stats">Real-time Cluster Stats</button></li>
-	</ul>
-	<p class="indent bold">Server response:</p>
-	<div id="output">
-	</div>
-      </div>
-      <div id="status">
-	<h3 class="center">Cluster Status</h3>
-	<ul>
-	  <li>Uptime - <span id="uptime"></span></li>
-	  <li>Number of nodes - <span id="nodes"></span></li>
-	</ul>
-      </div>
+      <h1 class="center underline">Upload and Compile a Servlet</h1>
+      <p>Upload a servlet to have it compiled and distributed:</p>
+      <form action="app/osp_web/upload" method="post" enctype="multipart/form-data">
+	<input type="file" name="sdf" /><br />
+	<input type="submit" name="" value="Upload Servlet" />
+      </form>
     </div>
     <div id="footer">
       <hr />

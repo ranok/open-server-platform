@@ -18,6 +18,7 @@ start() ->
 	    net_kernel:start([?NODENAME, shortnames])
     end,
     erlang:set_cookie(node(), ?COOKIE),
+    code:add_path(?APP_DIR),
     application:start(mnesia),
     Pid = osp_broker:start(osp_admin, ?ADMINPORT),
     case Pid of

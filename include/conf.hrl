@@ -24,3 +24,5 @@
 % The prefix of the application file area
 -define(FS_PREFIX, "/tmp").
 
+% Where OSP will store the compiled applications
+-define(APP_DIR, "apps").
