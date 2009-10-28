@@ -26,3 +26,6 @@
 
 % Where OSP will store the compiled applications
 -define(APP_DIR, "apps").
+
+% Where OSP will store the application source code
+-define(SRC_DIR, "servlets").
