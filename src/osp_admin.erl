@@ -9,7 +9,7 @@
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
 % Export the admin functions for the web console
--export([shutdown_osp/0, stats_osp/0, uptime_osp/0, appnode/0]).
+-export([shutdown_osp/0, stats_osp/0, uptime_osp/0, nodeapp/0]).
 
 % Include the OSP configuration
 -include("../include/conf.hrl").
@@ -52,9 +52,9 @@ start_mnesia() ->
     ok.
 
 %% @doc Returns the App-Node listing for the cluster
-%% @spec appnode() -> list()
-appnode() ->
-    retrieve(appnode).
+%% @spec nodeapp() -> list()
+nodeapp() ->
+    retrieve(nodeapp).
 
 %% @doc The main server loop
 %% @spec server(tuple()) -> none()
