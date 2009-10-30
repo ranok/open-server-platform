@@ -9,4 +9,4 @@ hipe:
 clean:
 	-rm ../ebin/osp*.beam *~  ../erl_crash.dump ../osp_rel* ../mnesia/*
 docs:
-	cd .. && erl -pa ./ebin -detached -s osp gen_docs
+	cd .. && erl -pa ./ebin -s osp gen_docs
