@@ -8,7 +8,7 @@
 -export([compile/1, distribute/2, servlet_to_app/1]).
 
 %% @doc Generates and compiles a servlet from a .sdf
-%% @spec compile(list()) -> {ok, list()} | {error, list()}
+%% @spec compile(string()) -> {ok, list()} | {error, list()}
 compile(Filename) ->
     Basename = lists:last(string:tokens(Filename, "/")),
     ModuleName = string:join(lists:reverse(lists:nthtail(1, lists:reverse(string:tokens(Basename, ".")))), "."),
@@ -37,7 +37,7 @@ compile(Filename) ->
     end.
 
 %% @doc Compiles a servlet and moves it to the application directory if compilation is successful
-%% @spec servlet_to_app(list()) -> {ok, list()} | {error, list()}
+%% @spec servlet_to_app(string()) -> {ok, list()} | {error, list()}
 servlet_to_app(Filename) ->
     Compile = compile(Filename),
     Basename = lists:last(string:tokens(Filename, "/")),

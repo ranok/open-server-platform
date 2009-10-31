@@ -70,6 +70,7 @@ server(Sock) ->
 	    close(Sock)
     end.
 
+%% @doc Parses incoming command from the telnet console and performs the command if valid
 handlecommand(Sock, Msg) ->
     String = erlang:binary_to_list(Msg),
     String2 = string:strip(String, right, $\n),
@@ -88,24 +89,39 @@ handlecommand(Sock, Msg) ->
 	    shutdown_osp();
 	"" ->
 	    ok;
-	Unknown ->
+	Unknown -> % Handle multi-word command
 	    Split = string:tokens(Unknown, " "),
-	    [Comm | _] = Split,
+	    [Comm | _] = Split, % Parse out the command from the arguments
 	    case Comm of
 		"start" ->
 		    [Comm, AppList, PortList, NodeList ] = Split,
 		    Port = erlang:list_to_integer(PortList),
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
-		    start_servlet(App, Port, Node, Sock);
+		    case start_servlet(App, Port, Node) of
+			ok ->
+			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
+			error ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+		    end;
 		"migrate" ->
 		    [Comm, AppList, FromNodeList, NodeList, PortList ] = Split,
 		    Port = erlang:list_to_integer(PortList),
 		    From = erlang:list_to_atom(FromNodeList),
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
-		    start_servlet(App, Port, Node, Sock),
-		    stop_servlet(App, From, Sock);
+		    case start_servlet(App, Port, Node) of
+			ok ->
+			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
+			error ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+		    end,
+		    case stop_servlet(App, From) of
+			ok ->
+			    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
+			error ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+		    end;
 		"add-diskless-ip" ->
 		    [Comm, IPList] = Split,
 		    IP = erlang:list_to_atom(IPList),
@@ -131,13 +147,19 @@ handlecommand(Sock, Msg) ->
 		    [Comm, AppL, NodeL] = Split,
 		    App = erlang:list_to_atom(AppL),
 		    Node = erlang:list_to_atom(NodeL),
-		    stop_servlet(App, Node, Sock);
+		    case stop_servlet(App, Node) of
+			ok ->
+			    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
+			error ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+		    end;
 		_ ->
 		    send(Sock, "Sorry, unknown command " ++ Unknown ++ "\r\n")
 	    end
     end.
 
 %% @todo This needs to update on every start of a new application
+%% @spec bkup_db(node(), atom()) -> ok
 bkup_db(Node, Type) ->
     Tables = mnesia:system_info(tables),
     F = fun(TableName) ->
@@ -147,6 +169,8 @@ bkup_db(Node, Type) ->
     lists:foreach(F, Tables),
     ok.
 
+%% @doc Starts an appropriately typed table copy for a passed 
+%% @spec start_db(node(), atom()) -> ok | error
 start_db(Node, App) ->
     TableName = erlang:list_to_atom(erlang:atom_to_list(App) ++ "_table"),
     rpc:call(Node, mnesia, start, []),
@@ -166,9 +190,13 @@ start_db(Node, App) ->
     rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000]),
     ok.
 
+%% @doc Returns a human readable string from a tuple version of an IP address
+%% @spec ip_to_string(tuple()) -> string()
 ip_to_string({A, B, C, D}) ->
     erlang:integer_to_list(A) ++ "." ++ erlang:integer_to_list(B) ++ "." ++ erlang:integer_to_list(C) ++ "." ++ erlang:integer_to_list(D).
 
+%% @doc Returns a string of the allowed slave IPs
+%% @spec get_ok_slaves() -> string()
 get_ok_slaves() ->
     Slaves = erl_boot_server:which_slaves(),
     Fun = fun({NM, IP}, A) ->
@@ -184,7 +212,9 @@ stats_osp() ->
     Out2 = lists:foldl(F, Out1, [node() | nodes()]),
     Out2 ++ "The following IPs are allowed to be diskless:\r\n" ++ get_ok_slaves().
 
-stop_servlet(App, Node, Sock) ->
+%% @doc Attempts to find and stop an application on the cluster
+%% @spec stop_servlet(atom(), node()) -> ok | error
+stop_servlet(App, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
 	    if
@@ -194,27 +224,13 @@ stop_servlet(App, Node, Sock) ->
 		    rpc:call(Node, osp_broker, stop, [App])
 	    end,
 	    del_app_from_list(Node, App),
-	    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
+	    ok;
 	false ->
-	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+	    error
     end.
 
-start_servlet(App, Port, Node, Sock) ->
-    case lists:member(Node, [node() | nodes()]) of
-	true ->
-	    if
-		Node =:= node() ->
-		    osp_broker:start(App, Port);
-		true->
-		    start_db(Node, App),
-		    rpc:call(Node, osp_broker, start, [App, Port])
-	    end,
-	    add_app_to_list(Node, App, Port),
-	    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
-	false ->
-	    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
-    end.
-
+%% @doc Starts a servlet application on a given node
+%% @spec start_servlet(atom(), int(), node()) -> ok | error
 start_servlet(App, Port, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
@@ -240,7 +256,7 @@ uptime_osp() ->
     erlang:integer_to_list(Days - 1) ++ " days " ++ erlang:integer_to_list(Hours) ++ " hrs " ++ erlang:integer_to_list(Mins) ++ " mins " ++ erlang:integer_to_list(Secs) ++ " secs".
 
 %% @doc Shuts down the entire OSP cluster, and quits the Erlang VM
-%% @spec shutdown_osp -> ok
+%% @spec shutdown_osp() -> ok
 shutdown_osp() ->
     F = fun(Node) ->
 		rpc:call(Node, init, stop, [])
@@ -261,7 +277,7 @@ init() ->
 	end,
     lists:foreach(F, ?AUTO_STARTED),
     store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
-    store(nodeapp, [{node(), [{osp_admin, ?ADMINPORT}]}]),
+    add_app_to_list(node(), osp_admin, ?ADMINPORT),
     ok.
 
 %% @doc A callback for the OSP broker service

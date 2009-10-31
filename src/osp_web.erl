@@ -24,7 +24,7 @@ stop(Pid) ->
     inets:stop(httpd, Pid).
 
 %% @doc Parses an input string into a list of tuples
-%% @spec parse_input(list()) -> list()
+%% @spec parse_input(string()) -> list()
 parse_input(Input) ->
     Args = string:tokens(Input, "&"),
     F = fun(E) ->
@@ -34,13 +34,15 @@ parse_input(Input) ->
     lists:map(F, Args).
 
 %% @doc Converts a UNIX newline to a HTML <br />
-%% @spec nl2br(list()) -> list()
+%% @spec nl2br(string()) -> string()
 nl2br(Str) ->
     Tokens = string:tokens(Str, "$\n"),
     string:join(Tokens, "\n<br />").
 
+
+
 %% @doc Provides cluster wide ajax callbacks for the web administrative system
-%% @spec(any(), list(), list()) -> ok | {error, Reason}
+%% @spec(any(), list(), string()) -> ok | {error, Reason}
 clusterwide(Session, _Env, Input) ->
     Args = parse_input(Input),
     {value, {operation, Op}} = lists:keysearch(operation, 1, Args),
@@ -54,6 +56,8 @@ clusterwide(Session, _Env, Input) ->
 	    mod_esi:deliver(Session, osp_admin:uptime_osp());
 	"nodes" ->
 	    mod_esi:deliver(Session, erlang:integer_to_list(length([node() | nodes()])));
+	"appnode" ->
+	    mod_esi:deliver(Session, io_lib:format("~p", [osp_admin:nodeapp()]));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.

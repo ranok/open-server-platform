@@ -18,7 +18,7 @@ call_func(M, F, A) ->
     Ret.
 
 %% @doc Opens a file for reading or writing
-%% @spec fopen(list(), list(), list()) -> io_device() | {err, list()}
+%% @spec fopen(list(), string(), list()) -> io_device() | {err, list()}
 %% @todo Harden the file jailing system
 fopen(App, Filename, Flags) ->
     Filename2 = ?FS_PREFIX ++ "/" ++ App ++ "/" ++ Filename,
