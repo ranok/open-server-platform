@@ -1,0 +1,4 @@
+@author Jacob Torrey <torreyji@clarkson.edu>
+@copyright 2009 Jacob Torrey
+@doc The Open Server Platform (OSP) is a framework designed to remove all but the core server logic from
+developing highly-available, multi-threaded networked applications. 
