@@ -96,11 +96,12 @@ button {
 }
 
 #nodes {
-    padding-bottom: 5cm;
+    /* padding-bottom: 5cm; */
 }
 
 .border {
     border: 1px solid #0099CC;
+    margin-bottom: 10px;
 }
 
 .node {
