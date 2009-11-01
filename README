@@ -1,8 +1,53 @@
+Open Server Platform
+Version 0.4
+11/1/09
+Coyright (C) 2009 Jacob Torrey
+
 Open Server Platform (OSP) is an open source (MIT License) project to make it easier to create secure, 
 multi-threaded servers that can be distributed (onto the cloud even). You can find more information 
 about OSP at http://www.openserverplatform.com. The main repository is on Google Code, but since SVN
- is such a nightmare to use, the bleeding edge code will be kept here, and push to Google every time 
+is such a nightmare to use, the bleeding edge code will be kept here, and push to Google every time 
 something big happens.
+			
+Introduction
+	Welcome to OSP! Hopefully you'll find it as exciting as we do! Let's 
+get started then, shall we?
 
-For installation and usage instructions, please see the OSP-ADMIN file.
+Requirements
+	Before you can get started, you'll need a few dependancies installed:
+	       -> erlang (HiPE or regular (HiPE reccomended)
+	       -> The XML::Simple perl module
+	       -> Netcat
 
+Starting OSP
+	Once you have the OSP environment downloaded, edit the include/osp.conf and run:
+	 		./bin/osp_ctl start
+	 							
+	This will start an OSP instance on the local machine prepared to server
+code to remote nodes and running the Mnesia shared state database. It will
+also start the administrator console listening on port 9876. Once this script 
+is complete, telnet to 127.0.0.1 on port 9876. You are now in the admin 
+console for OSP, from whence you can see stats about the current system, add
+other nodes to the OSP cluster, and manage running applications.
+      In addition to the telnet interface, there is a CLI script in ./bin that
+provides a more scriptable interface to the OSP cluster.
+      As of version 0.4, there is also a web management console which can be
+found at http://localhost:9877 that provides a more user friendly management
+interface.
+
+Adding other nodes
+	To add other diskless nodes (nodes without a copy of OSP, just copy 
+join.sh to each machine and edit it to reflect your setup. Before running the 
+join script, type 'add-diskless-ip <ip of joining machine>' on the OSP admin 
+console. Now you can run the join script and on the OSP admin console, when 
+you run 'stats', you should see your new node. 
+	To add nodes that have a local copy of OSP, just edit the join script 
+to point to the other nodes and run it. It will automatically detect if there 
+is a local copy of OSP and use that one.
+
+Starting applications
+	To start applications, connect to the admin console and type 'start
+<app name> <port #> <node name>'. If you want to run an application on the 
+master server, start it on that one first. If you are starting an application 
+on remote machine, you must ensure that it resides on that machine, or if it is
+a diskless node, that the compiled application is on the master code server.
