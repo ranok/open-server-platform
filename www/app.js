@@ -8,14 +8,14 @@ $(function() {
         connectWith: '.droppable',
         stop: function(event, ui) {
 		if ($(ui.item).children("a").size() == 0) {
-		    $(ui.item).append('<br /><br /><a href="#" class="delete_app">Delete</a>');
+		    $(ui.item).append('<br /><br /><a href="#" class="stop_app">Stop</a>');
 		}
 	}
     });
 
     $("body").click(function(event) {
 	var $target = $(event.target);
-        if ($target.is(".delete_app")) {
+        if ($target.is(".stop_app")) {
 	    event.preventDefault();
 	    $target.parent().remove();
 	}
