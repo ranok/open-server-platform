@@ -272,12 +272,17 @@ init() ->
 		 erl_boot_server:add_slave(IP)
 	 end,
     lists:foreach(DL, ?ALLOWED_DISKLESS),
+    store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
+    case retrieve(nodeapp) of
+	undefined ->
+	    store(nodeapp, [{node(), [{osp_admin, ?ADMINPORT}]}]);
+	_ ->
+	    add_app_to_list(node(), osp_admin, ?ADMINPORT)
+    end,
     F = fun({App, Port}) ->
 		start_servlet(App, Port, node())
 	end,
     lists:foreach(F, ?AUTO_STARTED),
-    store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
-    add_app_to_list(node(), osp_admin, ?ADMINPORT),
     ok.
 
 %% @doc A callback for the OSP broker service
