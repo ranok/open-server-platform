@@ -9,23 +9,34 @@
 -define(SCTPOPTS, [binary, {reuseadr, true}, {active, false}]).
 
 % Exports
--export([start/1, set_control/1, accept/1, close/1]).
+-export([start/1, start/2, set_control/1, accept/1, close/1]).
 
-%% @doc Returns a function (arity 1) for starting a server socket
-start(tcp) ->
+%% @doc Returnes a function (arity 1) for starting a server socket with passed socket options
+%% @spec start(tcp | udp | sctp, list()) -> fun()
+start(tcp, Options) ->
     fun(Port) ->
-	    gen_tcp:listen(Port, ?TCPOPTS)
+	    gen_tcp:listen(Port, Options)
     end;
-start(sctp) ->
+start(sctp, Options) ->
     fun(Port) ->
-	    gen_sctp:listen(Port, ?SCTPOPTS)
+	    gen_sctp:listen(Port, Options)
     end;
-start(udp) ->
+start(udp, Options) ->
     fun(Port) ->
-	    gen_udp:open(Port, ?UDPOPTS)
+	    gen_udp:open(Port, Options)
     end.
 
+%% @doc Returns a function (arity 1) for starting a server socket with default socket options 
+%% @spec start(tcp | udp | sctp) -> fun()
+start(tcp) ->
+    start(tcp, ?TCPOPTS);
+start(sctp) ->
+    start(sctp, ?SCTPOPTS);
+start(udp) ->
+    start(udp, ?UDPOPTS).
+
 %% @doc Returns a function that sets the controlling process of Sock to Pid
+%% @spec set_control(tcp | udp | sctp) -> fun()
 set_control(tcp) ->
     fun(Sock, Pid) ->
 	    gen_tcp:controlling_process(Sock, Pid)

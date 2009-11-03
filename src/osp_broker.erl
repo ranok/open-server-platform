@@ -6,9 +6,6 @@
 
 -export([start/2, stop/1, shutdown/0]).
 
-% Definitions
--define(TCPOPTS, [{reuseaddr, true}, binary, {packet, 0}, {active, false}]).
-
 %% @doc Shuts down the Mnesia database
 %% @spec shutdown() -> ok
 shutdown() -> 
@@ -20,10 +17,28 @@ stop(Name) ->
     Name ! stop,
     ok.
 
+%% @doc Ensures that there are no options that will break OSP's functionality (i.e. {active, true})
+%% @spec ensure_valid_opts(list()) -> list()
+%% @todo Finish this function!!!
+ensure_valid_opts(Opts) ->
+    Opts.
+
 %% @doc Starts the server named Name on port Port
 %% @spec start(atom(), int()) -> ok | {error, Reason}
 start(Name, Port) ->
-    Start = osp_proto:start(apply(Name, proto, [])),
+    Proto = apply(Name, proto, []),
+    code:load_file(Name),
+    case erlang:function_exported(Name, sockopts, 1) of
+	true ->
+	    case catch(apply(Name, sockopts, [Proto])) of
+		{'EXIT', _} ->
+		    Start = osp_proto:start(Proto);
+		_ ->
+		    Start = osp_proto:start(Proto, ensure_valid_opts(apply(Name, sockopts, [Proto])))
+	    end;
+	false ->
+	    Start = osp_proto:start(Proto)
+    end,
     case Start(Port) of
 	{ok, LSock} ->
 	    apply(Name, start_mnesia, []),
