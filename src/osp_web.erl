@@ -49,15 +49,15 @@ clusterwide(Session, _Env, Input) ->
     case Op of
 	"shutdown" ->
 	    mod_esi:deliver(Session, "OSP Shutdown"),
-	    osp_admin:shutdown_osp();
+	    osp_manager:shutdown_osp();
 	"stats" ->
-	    mod_esi:deliver(Session, nl2br(osp_admin:stats_osp()));
+	    mod_esi:deliver(Session, nl2br(osp_manager:stats()));
 	"uptime" ->
-	    mod_esi:deliver(Session, osp_admin:uptime_osp());
+	    mod_esi:deliver(Session, osp_manager:uptime());
 	"nodes" ->
 	    mod_esi:deliver(Session, erlang:integer_to_list(length([node() | nodes()])));
 	"appnode" ->
-	    mod_esi:deliver(Session, io_lib:format("~p", [osp_admin:nodeapp()]));
+	    mod_esi:deliver(Session, io_lib:format("~p", [osp_manager:nodeapp()]));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.

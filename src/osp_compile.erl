@@ -3,8 +3,6 @@
 %% @doc Provides servlet compilation functionality
 -module(osp_compile).
 
--include("../include/conf.hrl").
-
 -export([compile/1, distribute/2, servlet_to_app/1]).
 
 %% @doc Generates and compiles a servlet from a .sdf
@@ -44,7 +42,7 @@ servlet_to_app(Filename) ->
     ModuleName = string:join(lists:reverse(lists:nthtail(1, lists:reverse(string:tokens(Basename, ".")))), "."),
     case Compile of
 	{ok, _} = Output ->
-	    file:rename(ModuleName ++ ".beam", ?APP_DIR ++ "/" ++ ModuleName ++ ".beam"),
+	    file:rename(ModuleName ++ ".beam", osp:get_conf('APP_DIR') ++ "/" ++ ModuleName ++ ".beam"),
 	    file:delete(ModuleName ++ ".erl");
 	{error, _} = Output ->
 	    file:delete(ModuleName ++ ".erl")

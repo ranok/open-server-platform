@@ -1,33 +1,15 @@
 %% @author Jacob Ian Torrey <torreyji@clarkson.edu>
 %% @copyright 2009 Jacob Torrey <torreyji@clarkson.edu>
 %% @version 0.4
-%% @doc Provides an interface to administer the OSP cluster
+%% @doc Provides a telnet interface to administer the OSP cluster
 -module(osp_admin).
 -behavior(osp_servlet).
 
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
 
-% Export the admin functions for the web console
--export([shutdown_osp/0, stats_osp/0, uptime_osp/0, nodeapp/0]).
-
-% Include the OSP configuration
--include("../include/conf.hrl").
-
 % Import the OSP socket library
 -import(osp_socket, [send/2, recv/2, sendf/3, close/1]).
-
-% Define the Mnesia record
--record(osp_table, {key, val}).
-
-%% @doc Stores a value in the mnesia database
-%% @spec store(atom(), any()) -> ok
-store(Key, Val) ->
-    osp_mnesia:store(osp_admin_table, Key, Val).
-
-%% @doc Gets a value from the mnesia database
-retrieve(Key) ->
-    osp_mnesia:retrieve(osp_admin_table, Key).
 
 %% @doc Returns the protocol for the application (this is a TCP applcation)
 %% @spec proto() -> tcp
@@ -37,24 +19,7 @@ proto() ->
 %% @doc The mnesia startup routine for osp_admin
 %% @spec start_mnesia() -> ok
 start_mnesia() ->
-    case lists:member(mnesia_sup, erlang:registered()) of
-	true ->
-	    ok;
-	false ->
-	    mnesia:start()
-    end,
-    case catch(mnesia:table_info(osp_admin_table, all)) of
-	{'EXIT', _} ->
-	    mnesia:create_table(osp_admin_table, [{record_name, osp_table}, {disc_copies, [node()]}, {attributes, record_info(fields, osp_table)}]);
-	_ ->
-	    ok
-    end,
     ok.
-
-%% @doc Returns the App-Node listing for the cluster
-%% @spec nodeapp() -> list()
-nodeapp() ->
-    retrieve(nodeapp).
 
 %% @doc The main server loop
 %% @spec server(tuple()) -> none()
@@ -79,14 +44,14 @@ handlecommand(Sock, Msg) ->
 	"help" -> % Print out the help message
 	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n\tstop <appname> <node> - Stops the given servlet on node\n\tmigrate <appname> <fromnode> <tonode> <port> - Migrates a servlet from fromnode to tonode, starting it on the given port\n">>);
 	"stats" -> % Display some stats
-	    send(Sock, stats_osp());
+	    send(Sock, osp_manager:stats());
 	"quit" ->
 	    close(Sock),
 	    exit(normal);
    	"shutdown" ->
 	    send(Sock, "Shutting down\r\n"),
 	    close(Sock),
-	    shutdown_osp();
+	    osp_manager:shutdown_osp();
 	"" ->
 	    ok;
 	Unknown -> % Handle multi-word command
@@ -98,7 +63,7 @@ handlecommand(Sock, Msg) ->
 		    Port = erlang:list_to_integer(PortList),
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
-		    case start_servlet(App, Port, Node) of
+		    case osp_mamager:start_servlet(App, Port, Node) of
 			ok ->
 			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
 			error ->
@@ -110,13 +75,13 @@ handlecommand(Sock, Msg) ->
 		    From = erlang:list_to_atom(FromNodeList),
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
-		    case start_servlet(App, Port, Node) of
+		    case osp_manager:start_servlet(App, Port, Node) of
 			ok ->
 			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
 			error ->
 			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
 		    end,
-		    case stop_servlet(App, From) of
+		    case osp_manager:stop_servlet(App, From) of
 			ok ->
 			    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
 			error ->
@@ -135,11 +100,11 @@ handlecommand(Sock, Msg) ->
 		    case Type of
 			ram ->
 			    rpc:call(Node, mnesia, change_config, [extra_db_nodes, [node()]]),
-			    bkup_db(Node, ram_copies);
+			    osp_manager:bkup_db(Node, ram_copies);
 			disk ->
 			    rpc:call(Node, mnesia, change_config, [extra_db_nodes, [node()]]),
 			    rpc:call(Node, mnesia, change_table_copy_type, [schema, Node, disc_copies]),
-			    bkup_db(Node, disc_copies);
+			    osp_manager:bkup_db(Node, disc_copies);
 			_ ->
 			    send(Sock, "Sorry, unknown backup type: " ++ TypeL ++ "\r\n")
 		    end;
@@ -147,7 +112,7 @@ handlecommand(Sock, Msg) ->
 		    [Comm, AppL, NodeL] = Split,
 		    App = erlang:list_to_atom(AppL),
 		    Node = erlang:list_to_atom(NodeL),
-		    case stop_servlet(App, Node) of
+		    case osp_manager:stop_servlet(App, Node) of
 			ok ->
 			    sendf(Sock, "Stopped ~p on ~p ~n", [App, Node]);
 			error ->
@@ -158,155 +123,12 @@ handlecommand(Sock, Msg) ->
 	    end
     end.
 
-%% @todo This needs to update on every start of a new application
-%% @spec bkup_db(node(), atom()) -> ok
-bkup_db(Node, Type) ->
-    Tables = mnesia:system_info(tables),
-    F = fun(TableName) ->
-		mnesia:add_table_copy(TableName, Node, Type),
-		rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000])
-	end,
-    lists:foreach(F, Tables),
-    ok.
-
-%% @doc Starts an appropriately typed table copy for a passed 
-%% @spec start_db(node(), atom()) -> ok | error
-start_db(Node, App) ->
-    TableName = erlang:list_to_atom(erlang:atom_to_list(App) ++ "_table"),
-    rpc:call(Node, mnesia, start, []),
-    case rpc:call(Node, init, get_argument, [loader]) of
-	error ->
-	    rpc:call(Node, mnesia, change_config, [extra_db_nodes, [node()]]),
-	    rpc:call(Node, mnesia, change_table_copy_type, [schema, Node, disc_copies]),
-	    mnesia:add_table_copy(TableName, Node, disc_copies);
-	{ok, [["inet"]]} ->
-	    mnesia:add_table_copy(TableName, Node, ram_copies),
-	    rpc:call(Node, mnesia, change_config, [extra_db_nodes, [node()]]);
-	{ok, [["efile"]]} ->
-	    rpc:call(Node, mnesia, change_config, [extra_db_nodes, [node()]]),
-	    rpc:call(Node, mnesia, change_table_copy_type, [schema, Node, disc_copies]),
-	    mnesia:add_table_copy(TableName, Node, disc_copies)
-       end,
-    rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000]),
-    ok.
-
-%% @doc Returns a human readable string from a tuple version of an IP address
-%% @spec ip_to_string(tuple()) -> string()
-ip_to_string({A, B, C, D}) ->
-    erlang:integer_to_list(A) ++ "." ++ erlang:integer_to_list(B) ++ "." ++ erlang:integer_to_list(C) ++ "." ++ erlang:integer_to_list(D).
-
-%% @doc Returns a string of the allowed slave IPs
-%% @spec get_ok_slaves() -> string()
-get_ok_slaves() ->
-    Slaves = erl_boot_server:which_slaves(),
-    Fun = fun({NM, IP}, A) ->
-		  A ++ "\tIP: " ++ ip_to_string(IP) ++ " Netmask: " ++ ip_to_string(NM) ++ "\r\n"
-	  end,
-    lists:foldl(Fun, [], Slaves).
-
-%% @doc This returns a string of the OSP cluster statistics
-%% @spec stats_osp() -> list()
-stats_osp() ->
-    F = fun(Node, A) -> A ++ io_lib:format("~p: ~.2f\r\n", [Node, round(100 * rpc:call(Node, cpu_sup, avg1, []) / 256) / 100]) end,
-    Out1 = "Nodes in the cluster and their CPU Utilization: \r\n",
-    Out2 = lists:foldl(F, Out1, [node() | nodes()]),
-    Out2 ++ "The following IPs are allowed to be diskless:\r\n" ++ get_ok_slaves().
-
-%% @doc Attempts to find and stop an application on the cluster
-%% @spec stop_servlet(atom(), node()) -> ok | error
-stop_servlet(App, Node) ->
-    case lists:member(Node, [node() | nodes()]) of
-	true ->
-	    if
-		Node =:= node() ->
-		    osp_broker:stop(App);
-		true->
-		    rpc:call(Node, osp_broker, stop, [App])
-	    end,
-	    del_app_from_list(Node, App),
-	    ok;
-	false ->
-	    error
-    end.
-
-%% @doc Starts a servlet application on a given node
-%% @spec start_servlet(atom(), int(), node()) -> ok | error
-start_servlet(App, Port, Node) ->
-    case lists:member(Node, [node() | nodes()]) of
-	true ->
-	    if
-		Node =:= node() ->
-		    osp_broker:start(App, Port);
-		true->
-		    start_db(Node, App),
-		    rpc:call(Node, osp_broker, start, [App, Port])
-	    end,
-	    add_app_to_list(Node, App, Port),
-	    ok;
-	false ->
-	    error
-    end.
-
-%% @doc Returns a human readable string of the cluster uptime
-%% @spec uptime_osp() -> list()
-uptime_osp() ->
-    Seconds = retrieve(uptime),
-    NSeconds = calendar:datetime_to_gregorian_seconds(erlang:universaltime()),
-    {{_, _, Days}, {Hours, Mins, Secs}} = calendar:gregorian_seconds_to_datetime(NSeconds - Seconds),
-    erlang:integer_to_list(Days - 1) ++ " days " ++ erlang:integer_to_list(Hours) ++ " hrs " ++ erlang:integer_to_list(Mins) ++ " mins " ++ erlang:integer_to_list(Secs) ++ " secs".
-
-%% @doc Shuts down the entire OSP cluster, and quits the Erlang VM
-%% @spec shutdown_osp() -> ok
-shutdown_osp() ->
-    F = fun(Node) ->
-		rpc:call(Node, init, stop, [])
-	end,
-    lists:foreach(F, nodes()),
-    init:stop().
-
 %% @doc Routine for starting the master boot server and autostarted applications
 %% @spec init() -> ok
 init() ->
-    erl_boot_server:start(['127.0.0.1']),
-    DL = fun(IP) ->
-		 erl_boot_server:add_slave(IP)
-	 end,
-    lists:foreach(DL, ?ALLOWED_DISKLESS),
-    store(uptime, calendar:datetime_to_gregorian_seconds(erlang:universaltime())),
-    case retrieve(nodeapp) of
-	undefined ->
-	    store(nodeapp, [{node(), [{osp_admin, ?ADMINPORT}]}]);
-	_ ->
-	    add_app_to_list(node(), osp_admin, ?ADMINPORT)
-    end,
-    F = fun({App, Port}) ->
-		start_servlet(App, Port, node())
-	end,
-    lists:foreach(F, ?AUTO_STARTED),
     ok.
 
 %% @doc A callback for the OSP broker service
 %% @spec cleanup() -> ok
 cleanup() ->
-    ok.
-
-%% @doc Deletes an application from the list of running applications
-%% @spec del_app_from_list(atom(), atom()) -> ok
-del_app_from_list(Node, App) ->
-    NodeApp = retrieve(nodeapp),
-    {Node, AppList} = lists:keyfind(Node, 1, NodeApp),
-    AL2 = lists:keydelete(App, 1, AppList),
-    store(nodeapp, lists:keyreplace(Node, 1, NodeApp, {Node, AL2})),
-    ok.
-
-%% @doc Adds an application to the list of running applications
-%% @spec add_app_to_list(atom(), atom(), integer()) -> ok
-add_app_to_list(Node, App, Port) ->
-    Nodeapp = retrieve(nodeapp),
-    case lists:keyfind(Node, 1, Nodeapp) of
-	false ->
-	    store(nodeapp, [{Node, [{App, Port}]} | Nodeapp]);
-	{Node, AppList} ->
-	    store(nodeapp, lists:keyreplace(Node, 1, Nodeapp, {Node, AppList ++ [{App, Port}]}))
-    end,
     ok.

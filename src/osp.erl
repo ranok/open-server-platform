@@ -2,49 +2,41 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
 %% @doc The exports for controlling the OSP system as a whole
 -module(osp).
--export([start/0, stop/1, join/1, setup/0, gen_docs/0]).
-
--include("../include/conf.hrl").
+-export([start/0, stop/1, join/1, setup/0, gen_docs/0, get_conf/1]).
 
 -define(VERSION, "0.4").
 
 %% @doc Starts the first 'master' node
 %% @spec start() -> {ok, Pid, pid()} | {error, Reason}
 start() ->
-    case ?USEFQDN of
+    case get_conf('USEFQDN') of
 	true ->
-	    net_kernel:start([?NODENAME]);
+	    net_kernel:start([get_conf('NODENAME')]);
 	false ->
-	    net_kernel:start([?NODENAME, shortnames])
+	    net_kernel:start([get_conf('NODENAME'), shortnames])
     end,
-    erlang:set_cookie(node(), ?COOKIE),
-    code:add_path(?APP_DIR),
+    erlang:set_cookie(node(), get_conf('COOKIE')),
+    code:add_path(get_conf('APP_DIR')),
     application:start(mnesia),
-    Pid = osp_broker:start(osp_admin, ?ADMINPORT),
-    case Pid of
-	{error, Err} ->
-	    {error, Err};
-	_ ->
-	    {ok, Pid, osp_web:start()}
-    end.
+    osp_manager:startup().
 
 %% @doc Stops OSP on this node
 %% @spec stop(Pid) -> ok
 stop(Pid) ->
-    osp_broker:stop(osp_admin),
+    osp_manager:stop_node(),
     osp_broker:shutdown(),
     osp_web:stop(Pid).
 
 %% @doc Setups mnesia and the OTP rel scripts for the first time
 %% @spec setup() -> ok
 setup() ->
-    case ?USEFQDN of
+    case get_conf('USEFQDN') of
 	true ->
-	    net_kernel:start([?NODENAME]);
+	    net_kernel:start([get_conf('NODENAME')]);
 	false ->
-	    net_kernel:start([?NODENAME, shortnames])
+	    net_kernel:start([get_conf('NODENAME'), shortnames])
     end,
-    erlang:set_cookie(node(), ?COOKIE),
+    erlang:set_cookie(node(), get_conf('COOKIE')),
     write_rel(),
     mnesia:create_schema([node()]),
     init:stop().
@@ -82,3 +74,14 @@ write_rel() ->
 %% @spec gen_docs() -> ok
 gen_docs() ->
     edoc:application(osp, ".", []).
+
+%% @doc Returns the configuration for a given key
+%% @spec get_conf(atom()) -> any()
+get_conf(Key) ->
+    {ok, L} = file:consult("include/conf.hrl"),
+    case lists:keysearch(Key, 1, L) of
+	{value, {Key, V}} ->
+	    V;
+	false ->
+	    {error, keynotfound}
+    end.

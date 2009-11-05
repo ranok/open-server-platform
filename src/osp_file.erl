@@ -3,17 +3,16 @@
 %% @doc File operations for OSP programs
 -module(osp_file).
 
--include("../include/conf.hrl").
 -export([fopen/3, fread/2, fwrite/2, fclose/1, fseek/3]).
 
 %% @doc Calls a command either on the local FS, or the remote FS depending on how the FS is setup
 %% @spec call_func(atom(), atom(), list()) -> any()
 call_func(M, F, A) ->
-    case ?SHARED_FS of
+    case osp:get_conf('SHARED_FS') of
 	true ->
 	    Ret = apply(M, F, A);
 	false ->
-	    Ret = rpc:call(?NODENAME, M, F, A)
+	    Ret = rpc:call(osp:get_conf('NODENAME'), M, F, A)
     end,
     Ret.
 
@@ -21,7 +20,7 @@ call_func(M, F, A) ->
 %% @spec fopen(list(), string(), list()) -> io_device() | {err, list()}
 %% @todo Harden the file jailing system
 fopen(App, Filename, Flags) ->
-    Filename2 = ?FS_PREFIX ++ "/" ++ App ++ "/" ++ Filename,
+    Filename2 = osp:get_conf('FS_PREFIX') ++ "/" ++ App ++ "/" ++ Filename,
     Ret = call_func(file, open, [Filename2, Flags]),
     case Ret of
 	{ok, FP} ->
