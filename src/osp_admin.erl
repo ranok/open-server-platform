@@ -123,7 +123,7 @@ handlecommand(Sock, Msg) ->
 	    end
     end.
 
-%% @doc Routine for starting the master boot server and autostarted applications
+%% @doc Callback for the OSP broker service
 %% @spec init() -> ok
 init() ->
     ok.

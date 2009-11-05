@@ -41,6 +41,7 @@ startup() ->
     {ok, Pid, osp_web:start()}.
 
 %% @doc Stops all the applications on a given node
+%% spec stop_node() -> ok
 stop_node() ->
     Apps = retrieve(nodeapp),
     Node = node(),
@@ -78,11 +79,12 @@ start_mnesia() ->
     ok.
 
 %% @doc Stores a value in the mnesia database
-%% @spec store(atom(), any()) -> ok
+%% @spec store(any(), any()) -> ok
 store(Key, Val) ->
     osp_mnesia:store(osp_table, Key, Val).
 
 %% @doc Gets a value from the mnesia database
+%% @spec retrieve(any()) -> any()
 retrieve(Key) ->
     osp_mnesia:retrieve(osp_table, Key).
 
