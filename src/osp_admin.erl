@@ -42,7 +42,7 @@ handlecommand(Sock, Msg) ->
     String3 = string:strip(String2, right, $\r),
     case String3 of
 	"help" -> % Print out the help message
-	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n\tstop <appname> <node> - Stops the given servlet on node\n\tmigrate <appname> <fromnode> <tonode> <port> - Migrates a servlet from fromnode to tonode, starting it on the given port\n">>);
+	    send(Sock, <<"OSP Admin Console\n\tquit - Quits the console\n\tstats - Prints general stats about the OSP cluster\n\tstart <appname> <port> <node> - Starts appname on node\n\tadd-diskless-ip <ip> - Adds IP to the allowed diskless server pool\n\tshutdown - Shutdown OSP on all nodes\n\tadd-backup-server <node> <type> - Makes node a backup server keeping an up-to-date copy of all the shared state in the cluster; type may be ram for faster, non-persistant storage, or disk for data persistance\n\tstop <appname> <node> - Stops the given servlet on node\n\tmigrate <appname> <fromnode> <tonode> <port> - Migrates a servlet from fromnode to tonode, starting it on the given port\n\trunning - Prints a list of all the running applications on the cluster\n">>);
 	"stats" -> % Display some stats
 	    send(Sock, osp_manager:stats());
 	"quit" ->
@@ -52,6 +52,9 @@ handlecommand(Sock, Msg) ->
 	    send(Sock, "Shutting down\r\n"),
 	    close(Sock),
 	    osp_manager:shutdown_osp();
+	"running" ->
+	    NA = osp_manager:nodeapp(),
+	    send(Sock, print_nodeapp(NA));
 	"" ->
 	    ok;
 	Unknown -> % Handle multi-word command
@@ -63,11 +66,13 @@ handlecommand(Sock, Msg) ->
 		    Port = erlang:list_to_integer(PortList),
 		    App = erlang:list_to_atom(AppList),
 		    Node = erlang:list_to_atom(NodeList),
-		    case osp_mamager:start_servlet(App, Port, Node) of
+		    case osp_manager:start_servlet(App, Port, Node) of
 			ok ->
 			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
-			error ->
-			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+			{error, nonode} ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n");
+			{error, noapp} ->
+			    send(Sock, "Sorry, the app you requested couldn't be found\r\n")
 		    end;
 		"migrate" ->
 		    [Comm, AppList, FromNodeList, NodeList, PortList ] = Split,
@@ -78,8 +83,10 @@ handlecommand(Sock, Msg) ->
 		    case osp_manager:start_servlet(App, Port, Node) of
 			ok ->
 			    sendf(Sock, "~p started on ~p port ~p~n", [App, Node, Port]);
-			error ->
-			    send(Sock, "Sorry, the node you requested couldn't be found\r\n")
+			{error, nonode} ->
+			    send(Sock, "Sorry, the node you requested couldn't be found\r\n");
+			{error, noapp} ->
+			    send(Sock, "Sorry, the app you requested couldn't be found\r\n")
 		    end,
 		    case osp_manager:stop_servlet(App, From) of
 			ok ->
@@ -122,6 +129,18 @@ handlecommand(Sock, Msg) ->
 		    send(Sock, "Sorry, unknown command " ++ Unknown ++ "\r\n")
 	    end
     end.
+
+%% @doc Returns a human readable string of the nodeapp data
+%% @spec print_nodeapp(list()) -> string()
+print_nodeapp(NA) ->
+    F1 = fun({App, Port}, Str) ->
+		 Str ++ "\n    " ++ erlang:atom_to_list(App) ++ ":" ++ erlang:integer_to_list(Port)
+	 end,
+    F2 = fun({Node, Applist}, Str) ->
+		 AppStr = lists:foldl(F1, "", Applist),
+		 Str ++ erlang:atom_to_list(Node) ++ AppStr ++ "\n"
+	 end,
+    lists:foldl(F2, "", NA).
 
 %% @doc Callback for the OSP broker service
 %% @spec init() -> ok

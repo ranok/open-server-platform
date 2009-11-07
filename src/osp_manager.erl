@@ -169,17 +169,22 @@ stop_servlet(App, Node) ->
 start_servlet(App, Port, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
-	    if
-		Node =:= node() ->
-		    osp_broker:start(App, Port);
-		true->
-		    start_db(Node, App),
-		    rpc:call(Node, osp_broker, start, [App, Port])
-	    end,
-	    add_app_to_list(Node, App, Port),
-	    ok;
+	    case code:load_file(App) of
+		{module, App} ->
+		    if
+			Node =:= node() ->
+			    osp_broker:start(App, Port);
+			true->
+			    start_db(Node, App),
+			    rpc:call(Node, osp_broker, start, [App, Port])
+		    end,
+		    add_app_to_list(Node, App, Port),
+		    ok;
+		{error, _} ->
+		    {error, noapp}
+	    end;
 	false ->
-	    error
+	    {error, nonode}
     end.
 
 %% @doc Returns a human readable string of the cluster uptime
