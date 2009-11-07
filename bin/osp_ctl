@@ -19,7 +19,27 @@ then
     echo "    stop - stop the OSP cluster"
     echo "    stats - print some information about the running cluster"
     echo "    webadmin - opens the web based administration system"
+    echo "    app_start <appname> <port> <node> - Starts appname on node"
+    echo "    app_stop <appname> <node> - Stops appname on node"
     exit 0
+fi
+
+if [ ${1} == "app_start" ]; then
+    if [ $# -eq 4 ]; then
+	RET=`echo "start ${2} ${3} ${4}" | nc localhost 9876`
+	exit 0
+    fi
+    echo "Invalid number of arguments, format is app_start <appname> <port> <node>"
+    exit -1
+fi
+
+if [ ${1} == "app_stop" ]; then
+    if [ $# -eq 3 ]; then
+	RET=`echo "stop ${2} ${3}" | nc localhost 9876`
+	exit 0
+    fi
+    echo "Invalid number of arguments, format is app_stop <appname> <node>"
+    exit -1
 fi
 
 if [ ${1} == "webadmin" ]; then
