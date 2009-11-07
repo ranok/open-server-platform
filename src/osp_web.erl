@@ -57,8 +57,18 @@ clusterwide(Session, _Env, Input) ->
 	"nodes" ->
 	    mod_esi:deliver(Session, erlang:integer_to_list(length([node() | nodes()])));
 	"appnode" ->
-	    mod_esi:deliver(Session, io_lib:format("~p", [osp_manager:nodeapp()]));
+	    mod_esi:deliver(Session, json_nodeapp(osp_manager:nodeapp()));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.
 
+%% @doc JSONizes the nodeapp information for the web application frontend
+%% @spec json_nodeapp(list()) -> string()
+json_nodeapp(NA) ->
+    F1 = fun({App, Port}, Str) ->
+		 Str ++ "{\"name: \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}"
+	 end,
+    F2 = fun({Node, Applist}, Str) ->
+		 Str ++ "{\"node\": \"" ++ erlang:atom_to_list(Node) ++ "\", \"running_apps\": [" ++ lists:foldl(F1, "", Applist) ++ "]}"
+	 end,
+    "[" ++ lists:foldl(F2, "", NA) ++ "]".
