@@ -1,0 +1,55 @@
+\documentclass{book}
+\author{Jacob Torrey}
+\title{Open Server Platform Manual}
+\begin{document}
+\maketitle{}
+\chapter{Introducing Open Server Platform}
+\section{Introduction}
+As the Internet scales beyond a simple system for serving static content over
+limited bandwidth links, there is growing need to support complex operations
+and for services to never go down. For a number of companies, their online
+services are their entire revenue stream, and if they were to go down, they
+would instantly lose money and customers. This desire for highly-available
+systems are driving software development to use multiple hardware machines or
+move their web applications into the `cloud'. However, developing software to 
+perform under distributed conditions is a far greater challenge than developing
+for the single machine counterpart.
+
+Open Server Platform (OSP) attempts to bridge this gap between developing a
+simple single-threaded, single-machine networked application and a distributed,
+redundant system capable of handling thousands of concurrent users. Based off
+of Erlang's Open Telecom Platform (OTP), OSP allows application developers to 
+focus on just the core logic of their system, and let OSP handle the rest of
+the heavy lifting. Using OSP, the developer must only focus on handling a 
+single request, from there OSP takes care of the rest.
+
+\section{Features}
+OSP provides a number of features to aide in the development and runtime
+management of an application cluster. Below the most promenient features are 
+outlined at a high level:
+
+\begin{enumerate}
+\item Automatic multi-threading and highly concurrent application brokerage
+system
+\item Socket handling and packet routing
+\item Per-application shared state redundantly shared across the cluster
+\item Atomicity of shared state transactions (commit all or commit none)
+\item Telnet console for application management and cluster monitoring
+\item Web-based at-a-glance cluster statistics, drag-and-drop application
+management and simple application deployment
+\item Command-line cluster operations
+\item Automatic application recovery
+\item Supports diskless nodes that dynamically load code from other nodes
+\end{enumerate}
+
+Throughout the rest of this manual there will be more information regarding
+each of these features and how to best leverage them in a distributed server
+application.
+
+\section{Usage Scenario}
+This section will describe a hypothetical use case for OSP, and demonstrate how
+it can be leveraged to simplify application development and deployment.
+
+\subsection{Scenario Background}
+
+\end{document}
