@@ -71,7 +71,7 @@ accept(tcp) ->
     end;
 accept(sctp) ->
     fun(Sock, Timeout) ->
-	    gen_sctp:recv(Sock, 0, Timeout)
+	    gen_sctp:recv(Sock, Timeout)
     end;
 accept(udp) ->
     fun(Sock, Timeout) ->
