@@ -64,7 +64,7 @@ clusterwide(Session, _Env, Input) ->
 %% @spec json_nodeapp(list()) -> string()
 json_nodeapp(NA) ->
     F1 = fun({App, Port}, Str) ->
-		 Str ++ "{\"name: \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}"
+		 Str ++ "{\"name\": \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}"
 	 end,
     F2 = fun({Node, Applist}, Str) ->
 		 Str ++ "{\"node\": \"" ++ erlang:atom_to_list(Node) ++ "\", \"running_apps\": [" ++ lists:foldl(F1, "", Applist) ++ "]}"
