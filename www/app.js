@@ -10,7 +10,7 @@ $(function() {
 			 $.each(n.running_apps,
 				function(app_num, app) {
 				  node_block += '<li class="draggable border" id="app_' + app_num +'">' +
-				                  app.name + ' Port: <input type="text" style="width: 2em;" id="app_' + app_num + '_port" value="' + app.port + '"/>' +
+				                  app.name + ' Port: <input type="text" style="width: 3em;" id="app_' + app_num + '_port" value="' + app.port + '"/>' +
 				                '<br /><br /><a href="#" id="stop_app_' + app_num + '" class="stop_app">Stop</a>' +
 				                '</li>';
 				});
