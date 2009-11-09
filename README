@@ -1,6 +1,6 @@
 Open Server Platform
 Version 0.4
-11/1/09
+11/9/09
 Coyright (C) 2009 Jacob Torrey
 
 Open Server Platform (OSP) is an open source (MIT License) project to make it easier to create secure, 
@@ -19,8 +19,13 @@ Requirements
 	       -> The XML::Simple perl module
 	       -> Netcat
 
+Building
+	Once you have the requirements installed, running make from inside of src
+should build the system, then you can return to the main OSP directory.
+
 Starting OSP
-	Once you have the OSP environment downloaded, edit the include/osp.conf and run:
+	Once you have the OSP environment downloaded and built, edit the include/conf.hrl
+and run:
 	 		./bin/osp_ctl start
 	 							
 	This will start an OSP instance on the local machine prepared to server
