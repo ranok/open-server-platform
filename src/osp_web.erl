@@ -39,8 +39,6 @@ nl2br(Str) ->
     Tokens = string:tokens(Str, "$\n"),
     string:join(Tokens, "\n<br />").
 
-
-
 %% @doc Provides cluster wide ajax callbacks for the web administrative system
 %% @spec(any(), list(), string()) -> ok | {error, Reason}
 clusterwide(Session, _Env, Input) ->
@@ -48,16 +46,16 @@ clusterwide(Session, _Env, Input) ->
     {value, {operation, Op}} = lists:keysearch(operation, 1, Args),
     case Op of
 	"shutdown" ->
-	    mod_esi:deliver(Session, "OSP Shutdown"),
+	    mod_esi:deliver(Session, "Content-type: text/plain\r\n\r\nOSP Shutdown"),
 	    osp_manager:shutdown_osp();
 	"stats" ->
-	    mod_esi:deliver(Session, nl2br(osp_manager:stats()));
+	    mod_esi:deliver(Session, "Content-type: text/html\r\n\r\n" ++ nl2br(osp_manager:stats()));
 	"uptime" ->
-	    mod_esi:deliver(Session, osp_manager:uptime());
+	    mod_esi:deliver(Session, "Content-type: text/plain\r\n\r\n" ++ osp_manager:uptime());
 	"nodes" ->
-	    mod_esi:deliver(Session, erlang:integer_to_list(length([node() | nodes()])));
+	    mod_esi:deliver(Session, "Content-type: text/plain\r\n\r\n" ++ erlang:integer_to_list(length([node() | nodes()])));
 	"appnode" ->
-	    mod_esi:deliver(Session, json_nodeapp(osp_manager:nodeapp()));
+	    mod_esi:deliver(Session, "Content-type: application/json\r\n\r\n" ++ json_nodeapp(osp_manager:nodeapp()));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.
