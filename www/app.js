@@ -18,6 +18,7 @@ $(function() {
 				       '  </ul>' +
 				       '</div>';
 
+			 $("#node_loading").remove();
 			 $("#nodes").append(node_block);
 		       });
 		$("#nodes").append('<br style="clear: both;" />');
