@@ -7,7 +7,7 @@
 -export([startup/0, stop_node/0]).
 
 % Export the admin functions
--export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2]).
+-export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2, servlet_running/2]).
 
 % Define the Mnesia record
 -record(osp_table, {key, val}).
@@ -169,19 +169,37 @@ stop_servlet(App, Node) ->
 start_servlet(App, Port, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
-	    case code:load_file(App) of
-		{module, App} ->
-		    if
-			Node =:= node() ->
-			    osp_broker:start(App, Port);
-			true->
-			    start_db(Node, App),
-			    rpc:call(Node, osp_broker, start, [App, Port])
-		    end,
+	    case servlet_running(Node, App) of
+		false ->
+		    case erlang:module_loaded(App) of
+			false ->
+			    case code:load_file(App) of
+				{module, App} ->
+				    if
+					Node =:= node() ->
+					    osp_broker:start(App, Port);
+					true->
+					    start_db(Node, App),
+					    rpc:call(Node, osp_broker, start, [App, Port])
+				    end,
+				    add_app_to_list(Node, App, Port),
+				    ok;
+				{error, _} ->
+				    {error, noapp}
+			    end;
+			true ->
+			    if
+				Node =:= node() ->
+				    osp_broker:start(App, Port);
+				true->
+				    start_db(Node, App),
+				    rpc:call(Node, osp_broker, start, [App, Port])
+			    end,
 		    add_app_to_list(Node, App, Port),
-		    ok;
-		{error, _} ->
-		    {error, noapp}
+			    ok
+		    end;
+		true ->
+		    {error, apprunning}
 	    end;
 	false ->
 	    {error, nonode}
@@ -207,10 +225,26 @@ shutdown_osp() ->
     store(nodeapp, []),
     init:stop().
 
+%% @doc A boolean test function for whether a servlet is running on a given node
+%% @spec servlet_running(node(), atom()) -> true | false
+servlet_running(Node, App) ->
+    NodeApp = nodeapp(),
+    case lists:keyfind(Node, 1, NodeApp) of
+	false ->
+	    false;
+	{Node, Applist} ->
+	    case lists:keyfind(App, 1, Applist) of
+		false ->
+		    false;
+		_ ->
+		    true
+	    end
+    end.
+
 %% @doc Deletes an application from the list of running applications
 %% @spec del_app_from_list(atom(), atom()) -> ok
 del_app_from_list(Node, App) ->
-    NodeApp = retrieve(nodeapp),
+    NodeApp = nodeapp(),
     {Node, AppList} = lists:keyfind(Node, 1, NodeApp),
     AL2 = lists:keydelete(App, 1, AppList),
     store(nodeapp, lists:keyreplace(Node, 1, NodeApp, {Node, AL2})),
@@ -219,7 +253,7 @@ del_app_from_list(Node, App) ->
 %% @doc Adds an application to the list of running applications
 %% @spec add_app_to_list(atom(), atom(), integer()) -> ok
 add_app_to_list(Node, App, Port) ->
-    Nodeapp = retrieve(nodeapp),
+    Nodeapp = nodeapp(),
     case lists:keyfind(Node, 1, Nodeapp) of
 	false ->
 	    store(nodeapp, [{Node, [{App, Port}]} | Nodeapp]);
