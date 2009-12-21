@@ -94,6 +94,7 @@ nodeapp() ->
     retrieve(nodeapp).
 
 %% @todo This needs to update on every start of a new application
+%% @doc Backs up all the existing tables to a node for replication
 %% @spec bkup_db(node(), atom()) -> ok
 bkup_db(Node, Type) ->
     Tables = mnesia:system_info(tables),
@@ -204,7 +205,7 @@ shutdown_osp() ->
 	end,
     lists:foreach(F, nodes()),
     store(uptime, undefined),
-    store(nodeapp, []),
+    store(nodeapp, undefined),
     init:stop().
 
 %% @doc Deletes an application from the list of running applications
