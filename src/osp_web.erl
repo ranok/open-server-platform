@@ -47,7 +47,7 @@ upload(Session, _Env, Input) ->
 %% @doc Writes a servlet to disk and returns its filename
 %% @spec parse_upload(string()) -> string()
 parse_upload(Input) ->
-    
+    Input.
 
 %% @doc Provides cluster wide ajax callbacks for the web administrative system
 %% @spec(any(), list(), string()) -> ok | {error, Reason}
@@ -58,6 +58,25 @@ clusterwide(Session, _Env, Input) ->
 	"shutdown" ->
 	    mod_esi:deliver(Session, "Content-type: text/plain\r\n\r\n" ++ "OSP Shutdown"),
 	    osp_manager:shutdown_osp();
+	"start_app" ->
+	    {value, {node, Node}} = lists:keysearch(node, 1, Args),
+	    {value, {app, App}} = lists:keysearch(app, 1, Args),
+	    {value, {port, Port}} = lists:keysearch(port, 1, Args),
+	    case osp_manager:start_servlet(erlang:list_to_atom(App), erlang:list_to_integer(Port), erlang:list_to_atom(Node)) of
+		ok ->
+		    mod_esi:deliver(Session, ct_string(text) ++ "Application started successfully");
+		{error, _} ->
+		    mod_esi:deliver(Session, ct_string(text) ++ "There was an error starting the application")
+	    end;		
+	"stop_app" ->
+	    {value, {node, Node}} = lists:keysearch(node, 1, Args),
+	    {value, {app, App}} = lists:keysearch(app, 1, Args),
+	    case osp_manager:stop_servlet(erlang:list_to_atom(App), erlang:list_to_atom(Node)) of
+		ok ->
+		    mod_esi:deliver(Session, ct_string(text) ++ "Application stopped successfully");
+		error ->
+		    mod_esi:deliver(Session, ct_string(text) ++ "There was an error stopping the application")
+	    end;
 	"stats" ->
 	    mod_esi:deliver(Session, ct_string(html) ++ nl2br(osp_manager:stats()));
 	"uptime" ->
@@ -75,13 +94,13 @@ clusterwide(Session, _Env, Input) ->
 %% @doc Returns a Content-Type string for a given MIME type
 %% @spec ct_string(atom()) -> string()
 ct_string(text) ->
-    "Content_type: text/plain\r\n\r\n";
+    "Content-type: text/plain\r\n\r\n";
 ct_string(html) ->
-    "Content_type: text/html\r\n\r\n";
+    "Content-type: text/html\r\n\r\n";
 ct_string(json) ->
-    "Content_type: application/json\r\n\r\n";
+    "Content-type: application/json\r\n\r\n";
 ct_string(_) ->
-    "Content_type: text/plain\r\n\r\n"
+    "Content-type: text/plain\r\n\r\n".
 
 json_apps() ->
     "".
@@ -90,9 +109,19 @@ json_apps() ->
 %% @spec json_nodeapp(list()) -> string()
 json_nodeapp(NA) ->
     F1 = fun({App, Port}, Str) ->
-		 Str ++ "{\"name\": \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}"
+		 case Str of
+		     "" ->
+			 "{\"name\": \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}";
+		     _ ->
+			 Str ++ ", {\"name\": \"" ++ erlang:atom_to_list(App) ++ "\", \"port\": \"" ++ erlang:integer_to_list(Port) ++ "\"}"
+		 end
 	 end,
     F2 = fun({Node, Applist}, Str) ->
-		 Str ++ "{\"node\": \"" ++ erlang:atom_to_list(Node) ++ "\", \"running_apps\": [" ++ lists:foldl(F1, "", Applist) ++ "]}"
+		 case Str of
+		     "" ->
+			 "{\"node\": \"" ++ erlang:atom_to_list(Node) ++ "\", \"running_apps\": [" ++ lists:foldl(F1, "", Applist) ++ "]}";
+		     _ ->
+			 Str ++ ", {\"node\": \"" ++ erlang:atom_to_list(Node) ++ "\", \"running_apps\": [" ++ lists:foldl(F1, "", Applist) ++ "]}"
+		 end
 	 end,
     "[" ++ lists:foldl(F2, "", NA) ++ "]".
