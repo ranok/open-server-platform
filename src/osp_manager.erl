@@ -155,9 +155,11 @@ stop_servlet(App, Node) ->
 	true ->
 	    if
 		Node =:= node() ->
-		    osp_broker:stop(App);
+		    osp_broker:stop(App),
+		    code:purge(App);
 		true->
-		    rpc:call(Node, osp_broker, stop, [App])
+		    rpc:call(Node, osp_broker, stop, [App]),
+		    rpc:call(Node, code, purge, [App])
 	    end,
 	    del_app_from_list(Node, App),
 	    ok;
