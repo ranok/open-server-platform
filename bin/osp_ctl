@@ -19,8 +19,9 @@ then
     echo "    stop - stop the OSP cluster"
     echo "    stats - print some information about the running cluster"
     echo "    webadmin - opens the web based administration system"
-    echo "    app_start <appname> <port> <node> - Starts appname on node"
+    echo "    app_start <appname> <port> <node> - Starts appname on node:port"
     echo "    app_stop <appname> <node> - Stops appname on node"
+    echo "    app_migrate <appname> <node> <port> <newnode> - Moves appname on node to newnode:port"
     exit 0
 fi
 
@@ -30,6 +31,15 @@ if [ ${1} == "app_start" ]; then
 	exit 0
     fi
     echo "Invalid number of arguments, format is app_start <appname> <port> <node>"
+    exit -1
+fi
+
+if [ ${1} == "app_migrate" ]; then
+    if [ $# -eq 6 ]; then
+	RET=`echo "migrate ${2} ${3} ${5} ${4}" | nc localhost 9876`
+	exit 0
+    fi
+    echo "Invalid number of arguments, format is app_migrate <appname> <node> <port> <newnode>"
     exit -1
 fi
 
