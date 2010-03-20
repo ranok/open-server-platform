@@ -4,14 +4,22 @@ use strict;
 use XML::Simple;
 use Data::Dumper;
 
+our $inputfile;
+our $outputdir;
+
 if(scalar(@ARGV) eq 0) {
     print "compile_servlet.pl - Compiles an OSP servlet and its XML metadata\n";
-    print "Usage:\n\tcompile_servlet.pl <input file>\n\n";
+    print "Usage:\n\tcompile_servlet.pl [-d dir] <input file>\n\n";
     exit(-1);
+} elsif(scalar(@ARGV) eq 1) {
+    $inputfile = $ARGV[0];
+    $outputdir = "./"
+} else {
+    $inputfile = $ARGV[2];
+    $outputdir = $ARGV[1];
 }
 
 our $tempdir;
-our $inputfile = $ARGV[0];
 our $basename = $inputfile;
 $basename =~ s/\.[a-z]*$//;
 $basename =~ s/^.*\///;
@@ -57,10 +65,12 @@ sub sap {
 	}
     }
     closedir(DIR);
+    `mv $basename $outputdir`;
     return 0;
 }
 
 sub erl {
+    `mv $inputfile $outputdir`;
     return 0;
 }
 
@@ -92,6 +102,7 @@ sub sdf {
 #`rm $module.erl`;
 
     if (-e "$module.erl") {
+	`mv $module.erl $outputdir`;
 	return 0;
     } else {
 	return -1;

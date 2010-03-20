@@ -7,7 +7,7 @@
 -export([startup/0, stop_node/0]).
 
 % Export the admin functions
--export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2, servlet_running/2]).
+-export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2, servlet_running/2, apps/0]).
 
 % Define the Mnesia record
 -record(osp_table, {key, val}).
@@ -139,6 +139,11 @@ get_ok_slaves() ->
 %% @spec ip_to_string(tuple()) -> string()
 ip_to_string({A, B, C, D}) ->
     erlang:integer_to_list(A) ++ "." ++ erlang:integer_to_list(B) ++ "." ++ erlang:integer_to_list(C) ++ "." ++ erlang:integer_to_list(D).
+
+%% @doc Returns a list of available applications that have been installed into the OSP system
+%% @spec apps() -> list()
+apps() ->
+    [osp_admin].
 
 %% @doc This returns a string of the OSP cluster statistics
 %% @spec stats() -> string()
