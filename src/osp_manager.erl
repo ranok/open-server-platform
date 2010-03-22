@@ -45,7 +45,7 @@ startup() ->
 stop_node() ->
     Apps = retrieve(nodeapp),
     Node = node(),
-    {value, {Node, LocalApps}} = lists:keysearch(node(), 1, Apps),
+    {Node, LocalApps} = lists:keyfind(node(), 1, Apps),
     F = fun({App, _}) ->
 		osp_broker:stop(App)
 	end,

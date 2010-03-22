@@ -53,7 +53,7 @@ join([Node]) ->
 get_vsn(Module) ->
     AppFile = code:lib_dir(Module) ++ "/ebin/" ++ atom_to_list(Module) ++ ".app",
     {ok, [{application, _App, Attrs}]} = file:consult(AppFile),
-    {value, {vsn, Vsn}} = lists:keysearch(vsn, 1, Attrs),
+    {vsn, Vsn} = lists:keyfind(vsn, 1, Attrs),
     Vsn.
 
 %% @doc Writes the .rel file and generates the boot scripts for the first OSP run
@@ -79,8 +79,8 @@ gen_docs() ->
 %% @spec get_conf(atom()) -> any()
 get_conf(Key) ->
     {ok, L} = file:consult("include/conf.hrl"),
-    case lists:keysearch(Key, 1, L) of
-	{value, {Key, V}} ->
+    case lists:keyfind(Key, 1, L) of
+	{Key, V} ->
 	    V;
 	false ->
 	    {error, keynotfound}

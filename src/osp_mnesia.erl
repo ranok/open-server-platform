@@ -53,7 +53,7 @@ retrieve(Tab, Key) ->
 	    end;
 	true ->
 	    Log = get(transaction_log),
-	    TV = lists:keysearch(Key, 1, Log),
+	    TV = lists:keyfind(Key, 1, Log),
 	    case TV of
 		false ->
 		    F = fun() ->
@@ -66,7 +66,7 @@ retrieve(Tab, Key) ->
 			{_, Key, Val} ->
 			    Val
 		    end;
-		{value, {Key, Val}} ->
+		{Key, Val} ->
 		    Val
 	    end
     end.

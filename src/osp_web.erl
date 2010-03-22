@@ -53,15 +53,15 @@ parse_upload(Input) ->
 %% @spec(any(), list(), string()) -> ok | {error, Reason}
 clusterwide(Session, _Env, Input) ->
     Args = parse_input(Input),
-    {value, {operation, Op}} = lists:keysearch(operation, 1, Args),
+    {operation, Op} = lists:keyfind(operation, 1, Args),
     case Op of
 	"shutdown" ->
 	    mod_esi:deliver(Session, "Content-type: text/plain\r\n\r\n" ++ "OSP Shutdown"),
 	    osp_manager:shutdown_osp();
 	"start_app" ->
-	    {value, {node, Node}} = lists:keysearch(node, 1, Args),
-	    {value, {app, App}} = lists:keysearch(app, 1, Args),
-	    {value, {port, Port}} = lists:keysearch(port, 1, Args),
+	    {node, Node} = lists:keyfind(node, 1, Args),
+	    {app, App} = lists:keyfind(app, 1, Args),
+	    {port, Port} = lists:keyfind(port, 1, Args),
 	    case osp_manager:start_servlet(erlang:list_to_atom(App), erlang:list_to_integer(Port), erlang:list_to_atom(Node)) of
 		ok ->
 		    mod_esi:deliver(Session, ct_string(text) ++ "Application started successfully");
@@ -69,8 +69,8 @@ clusterwide(Session, _Env, Input) ->
 		    mod_esi:deliver(Session, ct_string(text) ++ "There was an error starting the application")
 	    end;		
 	"stop_app" ->
-	    {value, {node, Node}} = lists:keysearch(node, 1, Args),
-	    {value, {app, App}} = lists:keysearch(app, 1, Args),
+	    {node, Node} = lists:keyfind(node, 1, Args),
+	    {app, App} = lists:keyfind(app, 1, Args),
 	    case osp_manager:stop_servlet(erlang:list_to_atom(App), erlang:list_to_atom(Node)) of
 		ok ->
 		    mod_esi:deliver(Session, ct_string(text) ++ "Application stopped successfully");
@@ -108,7 +108,7 @@ json_apps(Apps) ->
     F = fun(App, Str) ->
 		case Str of
 		    "" ->
-			"\"" ++ erlang:atom_to_list(App) ++ "\""; 
+			"\"" ++ erlang:atom_to_list(App) ++ "\"";
 		    _ ->
 			Str ++ ", \"" ++ erlang:atom_to_list(App) ++ "\""
 		end
