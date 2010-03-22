@@ -15,7 +15,7 @@ get started then, shall we?
 
 Requirements
 	Before you can get started, you'll need a few dependancies installed:
-	       -> erlang (HiPE or regular (HiPE recommended)
+	       -> erlang R13B or newer
 	       -> erlang-os_mon, erlang-mnesia (the OTP stack)
 	       -> The XML::Simple perl module
 	       -> Netcat
