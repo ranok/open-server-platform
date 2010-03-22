@@ -63,7 +63,7 @@ if [ ${1} == "start" ]; then
 	(cd .. && ./setup-osp.sh)
 	sleep 1
     fi
-    nc localhost -w 1 9876 > /dev/null
+    nc localhost -z 9876
     if [ $? -eq 1 ]; then
 	(cd .. && ./start-osp.sh)
 	exit 0
