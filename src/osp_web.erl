@@ -86,7 +86,7 @@ clusterwide(Session, _Env, Input) ->
 	"appnode" ->
 	    mod_esi:deliver(Session, ct_string(json) ++ json_nodeapp(osp_manager:nodeapp()));
 	"apps" ->
-	    mod_esi:deliver(Session, ct_string(apps) ++ json_apps(osp_manager:apps()));
+	    mod_esi:deliver(Session, ct_string(json) ++ json_apps(osp_manager:apps()));
 	_ ->
 	    mod_esi:deliver(Session, "")
     end.
@@ -113,7 +113,7 @@ json_apps(Apps) ->
 			Str ++ ", \"" ++ erlang:atom_to_list(App) ++ "\""
 		end
 	end,
-    "\"apps\": [" ++ lists:foldl(F, "", Apps) ++ "]".
+    "{\"apps\": [" ++ lists:foldl(F, "", Apps) ++ "]}".
 
 %% @doc JSONizes the nodeapp information for the web application frontend
 %% @spec json_nodeapp(list()) -> string()
