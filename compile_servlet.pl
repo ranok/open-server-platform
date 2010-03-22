@@ -6,6 +6,7 @@ use Data::Dumper;
 
 our $inputfile;
 our $outputdir;
+our $move;
 
 if(scalar(@ARGV) eq 0) {
     print "compile_servlet.pl - Compiles an OSP servlet and its XML metadata\n";
@@ -13,10 +14,12 @@ if(scalar(@ARGV) eq 0) {
     exit(-1);
 } elsif(scalar(@ARGV) eq 1) {
     $inputfile = $ARGV[0];
-    $outputdir = "./"
+    $outputdir = "./";
+    $move = 0;
 } else {
     $inputfile = $ARGV[2];
     $outputdir = $ARGV[1];
+    $move = 1;
 }
 
 our $tempdir;
@@ -65,7 +68,9 @@ sub sap {
 	}
     }
     closedir(DIR);
-    `mv $basename $outputdir`;
+    if($move eq 1) {
+	`mv $basename $outputdir`;
+    }
     return 0;
 }
 
@@ -102,7 +107,9 @@ sub sdf {
 #`rm $module.erl`;
 
     if (-e "$module.erl") {
-	`mv $module.erl $outputdir`;
+	if($move eq 1) {
+	    `mv $module.erl $outputdir`;
+	}
 	return 0;
     } else {
 	return -1;
