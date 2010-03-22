@@ -1,6 +1,7 @@
 osp:
 	erlc osp_servlet.erl
-	erlc -o ../ebin *.erl
+	erlc -o ../ebin osp_servlet.erl
+	erlc -o ../ebin -pa . *.erl
 	rm osp_servlet.beam
 hipe:
 	erlc -smp +"[native, {hipe, [o3]}]" osp_servlet.erl

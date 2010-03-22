@@ -3,7 +3,7 @@
 %% @version 0.4
 %% @doc Provides a telnet interface to administer the OSP cluster
 -module(osp_admin).
--behavior(osp_servlet).
+-behaviour(osp_servlet).
 
 % Export OSP server callback
 -export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
