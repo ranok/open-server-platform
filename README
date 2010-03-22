@@ -1,7 +1,7 @@
 Open Server Platform
 Version 0.4
-11/9/09
-Coyright (C) 2009 Jacob Torrey
+3/22/10
+Coyright (C) 2010 Jacob Torrey
 
 Open Server Platform (OSP) is an open source (MIT License) project to make it easier to create secure, 
 multi-threaded servers that can be distributed (onto the cloud even). You can find more information 
@@ -15,7 +15,8 @@ get started then, shall we?
 
 Requirements
 	Before you can get started, you'll need a few dependancies installed:
-	       -> erlang (HiPE or regular (HiPE reccomended)
+	       -> erlang (HiPE or regular (HiPE recommended)
+	       -> erlang-os_mon, erlang-mnesia (the OTP stack)
 	       -> The XML::Simple perl module
 	       -> Netcat
 
