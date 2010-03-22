@@ -15,7 +15,7 @@ get started then, shall we?
 
 Requirements
 	Before you can get started, you'll need a few dependancies installed:
-	       -> erlang R13B or newer
+	       -> erlang R13B or newer and the development headers (erlang-dev)
 	       -> erlang-os_mon, erlang-mnesia (the OTP stack)
 	       -> The XML::Simple perl module
 	       -> Netcat
