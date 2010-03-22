@@ -163,16 +163,22 @@ stats() ->
 stop_servlet(App, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
-	    if
-		Node =:= node() ->
-		    osp_broker:stop(App),
-		    code:purge(App);
-		true->
-		    rpc:call(Node, osp_broker, stop, [App]),
-		    rpc:call(Node, code, purge, [App])
-	    end,
-	    del_app_from_list(Node, App),
-	    ok;
+	    {Node, LocalHost} = lists:keyfind(Node, 1, nodeapp()),
+	    case lists:keyfind(App, 1, LocalHost) of
+		false ->
+		    error;
+		_ ->
+		    if
+			Node =:= node() ->
+			    osp_broker:stop(App),
+			    code:purge(App);
+			true->
+			    rpc:call(Node, osp_broker, stop, [App]),
+			    rpc:call(Node, code, purge, [App])
+		    end,
+		    del_app_from_list(Node, App),
+		    ok
+	    end;
 	false ->
 	    error
     end.
