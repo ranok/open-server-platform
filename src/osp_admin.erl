@@ -3,23 +3,13 @@
 %% @version 0.4
 %% @doc Provides a telnet interface to administer the OSP cluster
 -module(osp_admin).
--behaviour(osp_servlet).
 
-% Export OSP server callback
--export([start_mnesia/0, server/1, init/0, cleanup/0, proto/0]).
-
-% Import the OSP socket library
--import(osp_socket, [send/2, recv/2, sendf/3, close/1]).
+-include("../include/header.hrl").
 
 %% @doc Returns the protocol for the application (this is a TCP applcation)
 %% @spec proto() -> tcp
 proto() ->
     tcp.
-
-%% @doc The mnesia startup routine for osp_admin
-%% @spec start_mnesia() -> ok
-start_mnesia() ->
-    ok.
 
 %% @doc The main server loop
 %% @spec server(tuple()) -> none()
