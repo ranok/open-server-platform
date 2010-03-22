@@ -1,4 +1,21 @@
 $(function() {
+    $.getJSON("app/osp_web/clusterwide?operation=apps",
+        function(apps) {
+            var app_list = "<ul>";
+            $.each(apps,
+                   function(index, app_name) {
+                       app_list += '<li class="draggable border" id="' + app_name + '">' + app_name + ' Port: <input type="text" style="width: 3em;" id="' + app_name + '-port" /></li>';
+                   });
+            app_list += "</ul>";
+            $("#app_list_loading").remove();
+            $("#apps").append(app_list);
+
+            $(".draggable").draggable({
+       	        helper: 'clone',
+                connectToSortable: ".sortable"
+            });
+    });
+
     $.getJSON("app/osp_web/clusterwide?operation=appnode",
 	      function(nodes) {
 		$.each(nodes,
@@ -32,11 +49,6 @@ $(function() {
 		          }
 		});
 	      });
-
-    $(".draggable").draggable({
-       	helper: 'clone',
-	connectToSortable: ".sortable"
-    });
 
     $("body").click(function(event) {
 	var $target = $(event.target);
