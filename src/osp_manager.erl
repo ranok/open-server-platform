@@ -36,7 +36,12 @@ startup() ->
     F = fun({App, Port}) ->
 		start_servlet(App, Port, node())
 	end,
-    lists:foreach(F, osp:get_conf('AUTO_STARTED')),
+    case lists:keyfind(node(), 1, nodeapp()) of
+	false ->
+	    lists:foreach(F, osp:get_conf('AUTO_STARTED'));
+	{_, LocalApps} ->
+	    lists:foreach(F, LocalApps)
+    end,
     Pid = spawn(fun() -> loop() end),
     {ok, Pid, osp_web:start()}.
 
@@ -61,7 +66,7 @@ loop() ->
 	    loop()
     end.
 
-%% @doc The mnesia startup routine for osp_admin
+%% @doc The mnesia startup routine for osp_manager
 %% @spec start_mnesia() -> ok
 start_mnesia() ->
     case lists:member(mnesia_sup, erlang:registered()) of
