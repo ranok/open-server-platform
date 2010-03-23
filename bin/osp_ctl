@@ -12,7 +12,7 @@ cd $ABSDIR
 if [ $# -eq 0 ] || [ ${1} == "help" ]
 then
     echo "osp_ctl - A CLI interface to Open Server Platform"
-    echo "(C) 2009 http://www.openserverplatform.com"
+    echo "(C) 2010 http://www.openserverplatform.com"
     echo "Commands:"
     echo "    help - display this help"
     echo "    start - start the OSP cluster"

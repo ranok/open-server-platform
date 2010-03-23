@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Starting Open Server Platform"
-echo "v0.4 (C) 2009 Jacob Torrey"
+echo "v0.4 (C) 2010 Jacob Torrey"
 echo "http://www.openserverplatform.com"
 epmd -daemon
 erl -smp auto -detached -mnesia dir "mnesia" -boot osp_rel-0.4 -pa ./ebin
