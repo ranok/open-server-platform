@@ -17,8 +17,26 @@ start() ->
     end,
     erlang:set_cookie(node(), get_conf('COOKIE')),
     code:add_path(get_conf('APP_DIR')),
+    {ok, _} = erl_boot_server:start(['127.0.0.1']),
+    DL = fun(IP) ->
+		 erl_boot_server:add_slave(IP)
+	 end,
+    lists:foreach(DL, osp:get_conf('ALLOWED_DISKLESS')),
     application:start(mnesia),
-    osp_manager:startup().
+    {ok, Pid} = osp_manager:startup(),
+    {ok, Pid, osp_web:start()}.
+
+%% @doc Joins node to an existing OSP cluster
+%% @spec join(list()) -> pong | pang
+join([Node]) when is_atom(Node) ->
+    true = net_kernel:connect_node(Node),
+    application:start(sasl),
+    application:start(os_mon),
+    application:start(mnesia),
+    rpc:call(Node, osp_manager, start_db, [node(), osp]),
+    osp_manager:startup();
+join([Node]) when is_list(Node) ->
+    join([erlang:list_to_atom(Node)]).
 
 %% @doc Stops OSP on this node
 %% @spec stop(Pid) -> ok
@@ -40,13 +58,6 @@ setup() ->
     write_rel(),
     mnesia:create_schema([node()]),
     init:stop().
-
-%% @doc Joins node to an existing OSP cluster
-%% @spec join(list()) -> pong | pang
-join([Node]) ->
-    application:start(sasl),
-    application:start(os_mon),
-    net_adm:ping(Node).
 
 %% @doc Dynamically gets the version of all the required applications to run OSP
 %% @spec get_vsn(atom()) -> list()

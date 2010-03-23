@@ -1,5 +1,5 @@
 %% @author Jacob Torrey <torreyji@clarkson.edu>
-%% @copyright 2009 Jacob Torrey
+%% @copyright 2010 Jacob Torrey
 %% @doc Manages all application servlets running on the node
 -module(osp_manager).
 
@@ -7,7 +7,7 @@
 -export([startup/0, stop_node/0]).
 
 % Export the admin functions
--export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2, servlet_running/2, apps/0]).
+-export([shutdown_osp/0, stats/0, uptime/0, nodeapp/0, start_servlet/3, stop_servlet/2, bkup_db/2, servlet_running/2, apps/0, start_db/2]).
 
 % Define the Mnesia record
 -record(osp_table, {key, val}).
@@ -15,11 +15,6 @@
 %% @doc Starts the local OSP node and all applications meant to be run on the node
 %% @spec startup() -> {ok, pid(), pid()}
 startup() ->
-    erl_boot_server:start(['127.0.0.1']),
-    DL = fun(IP) ->
-		 erl_boot_server:add_slave(IP)
-	 end,
-    lists:foreach(DL, osp:get_conf('ALLOWED_DISKLESS')),
     start_mnesia(),
     case retrieve(uptime) of 
 	undefined ->
@@ -42,8 +37,10 @@ startup() ->
 	{_, LocalApps} ->
 	    lists:foreach(F, LocalApps)
     end,
+    add_app_to_list(node(), null, 0), % Adds a dummy app to the list to have it show up in the nodeapp
+    del_app_from_list(node(), null),
     Pid = spawn(fun() -> loop() end),
-    {ok, Pid, osp_web:start()}.
+    {ok, Pid}.
 
 %% @doc Stops all the applications on a given node
 %% spec stop_node() -> ok
@@ -128,7 +125,7 @@ start_db(Node, App) ->
 	    rpc:call(Node, mnesia, change_table_copy_type, [schema, Node, disc_copies]),
 	    mnesia:add_table_copy(TableName, Node, disc_copies)
        end,
-    rpc:call(Node, mnesia, wait_for_tables, [[TableName], 1000]),
+    rpc:call(Node, mnesia, wait_for_tables, [[schema, TableName], 5000]),
     ok.
 
 %% @doc Returns a string of the allowed slave IPs
@@ -163,11 +160,10 @@ stats() ->
 stop_servlet(App, Node) ->
     case lists:member(Node, [node() | nodes()]) of
 	true ->
-	    {Node, LocalHost} = lists:keyfind(Node, 1, nodeapp()),
-	    case lists:keyfind(App, 1, LocalHost) of
+	    case servlet_running(Node, App) of
 		false ->
 		    error;
-		_ ->
+		true ->
 		    if
 			Node =:= node() ->
 			    osp_broker:stop(App),
