@@ -42,8 +42,8 @@ found at http://localhost:9877 that provides a more user friendly management
 interface.
 
 Adding other nodes
-	To add other diskless nodes (nodes without a copy of OSP, just copy 
-join.sh to each machine and edit it to reflect your setup. Before running the 
+	To add other diskless nodes (nodes without a copy of OSP), run gen-join.pl
+and copy join.sh and inclue to another machine. Before running the 
 join script, type 'add-diskless-ip <ip of joining machine>' on the OSP admin 
 console. Now you can run the join script and on the OSP admin console, when 
 you run 'stats', you should see your new node. 
