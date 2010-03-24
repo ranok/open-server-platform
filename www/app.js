@@ -27,7 +27,7 @@ $(function() {
 			 $.each(n.running_apps,
 				function(app_num, app) {
 				  node_block += '<li class="draggable border" id="app-' + app.name +'">' + app.name +
-                                                '<br />Port: ' + app.port +
+                                                '<br />Port: <span class="port">' + app.port + '</span>' +
 				                '<br /><br /><a href="#" id="stop-app-' + app.name + '" class="stop-app">Stop</a>' +
 				                '</li>';
 				});
@@ -62,8 +62,8 @@ $(function() {
                                             success: function(msg) {
                                                 if (msg == "Application started successfully") {
                                                     $("#dialog").dialog("destroy");
-                                                    $(ui.item).attr("id", "app-" + app_name)
-                                                    $(ui.item).append('<br />Port: ' + port + '<br /><br /><a href="#" class="stop-app">Stop</a>');
+                                                    $(ui.item).attr("id", "app-" + app_name);
+                                                    $(ui.item).append('<br />Port: <span class="port">' + port + '</span><br /><br /><a href="#" class="stop-app">Stop</a>');
                                                 }
                                                 else if (msg == "There was an error starting the application") {
                                                     alert("Error starting the application.");
@@ -80,7 +80,43 @@ $(function() {
                                     });
                                 });
 		            }
-		          }
+                    },
+                    receive: function(event, ui) {
+                            if ($(ui.sender).parents("div").siblings("h3").text() == "Running Nodes") {
+                                var app_name =  $(ui.item).attr("id").substring(4);
+                                var port = $(ui.item).children(".port").text();
+                                var sender_node_name = $(ui.sender).siblings("h4").text();
+                                var node_name = $(ui.item).parents("ul").siblings("h4").text();
+                                var stop_url = "app/osp_web/clusterwide?operation=stop_app&app=" + app_name + "&node=" + sender_node_name;
+                                var start_url = "app/osp_web/clusterwide?operation=start_app&app=" + app_name + "&port=" + port + "&node=" + node_name;
+
+                                $.ajax({
+                                        url: stop_url,
+                                        success: function(msg) {
+                                            if (msg == "Application stopped successfully")
+                                                ;
+                                            else if (msg == "There was an error stopping the application")
+                                                alert("Error stopping the application.");
+                                        },
+                                        error: function(msg) {
+                                            alert("Error with the Stop Application request for migration.  Try again.");
+                                        }
+                                });
+
+                                $.ajax({
+                                        url: start_url,
+                                        success: function(msg) {
+                                            if (msg == "Application started successfully")
+                                                ;
+                                            else if (msg == "There was an error starting the application")
+                                                alert("Error starting the application.");
+                                        },
+                                        error: function(msg) {
+                                            alert("Error with the Start Application request for migration.  Try again.");
+                                        }
+                                });
+                            }
+                    }
 		});
     });
 
