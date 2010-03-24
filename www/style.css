@@ -27,6 +27,10 @@ button {
     text-indent: 1em;
 }
 
+.stop-app {
+    color: #0099CC;
+}
+
 #header {
     text-align: right;
 }
