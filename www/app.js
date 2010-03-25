@@ -28,9 +28,9 @@ $(function() {
 				function(app_num, app) {
 				  node_block += '<li class="draggable border" id="app-' + app.name +'">' + app.name +
                                                 '<br />Port: <span class="port">' + app.port + '</span>' +
-				                '<br /><br /><a href="#" id="stop-app-' + app.name + '" class="stop-app">Stop</a>' +
-				                '</li>';
-				});
+                                                '<br /><br /><a href="#" id="stop-app-' + app.name + '" class="stop-app">Stop</a>' +
+                                                '</li>';
+                                  });
 			 node_block += '    <li></li>' +
 				       '  </ul>' +
 				       '</div>';
@@ -49,7 +49,14 @@ $(function() {
 
                                 $("#dialog").html('<form id="app-port-form" action="#"><input type="hidden" name="app-port-name" value="' + app_name +
                                                   '" /><p>Port: <input type="text" style="width: 3em;" name="app-port" id="app-port" /></p>' +
-                                                  '<p><input type="submit" value="Create" /></p></form>').show().dialog();
+                                                  '<p><input type="submit" value="Create" /></p></form>');
+                                
+                                $("#dialog").show().dialog({
+                                        close: function(msg) {
+                                            $(ui.item).remove();
+                                            $("#dialog").dialog("destroy");
+                                        }
+                                });
 
                                 $("#app-port-form").submit(function(event) {
                                     event.preventDefault();
@@ -93,26 +100,43 @@ $(function() {
                                 $.ajax({
                                         url: stop_url,
                                         success: function(msg) {
-                                            if (msg == "Application stopped successfully")
-                                                ;
+                                            if (msg == "Application stopped successfully") {
+                                                $.ajax({
+                                                        url: start_url,
+                                                        success: function(msg) {
+                                                            if (msg == "Application started successfully")
+                                                                ;
+                                                            else if (msg == "There was an error starting the application") {
+                                                                alert("Error starting the application during migration.  The application will be reverted to the originating node.");
+
+                                                                var revert_url = "app/osp_web/clusterwide?operation=start_app&app=" + app_name + "&port=" + port + "&node=" + sender_node_name;
+
+                                                                $.ajax({
+                                                                        url: revert_url,
+                                                                        success: function(msg) {
+                                                                            if (msg == "Application started successfully")
+                                                                                $(ui.sender).sortable("cancel");
+                                                                            else if (msg == "There was an error starting the application") {
+                                                                                alert("Error reverting the application after a failed migration.  Restart the application.");
+                                                                                $(ui.item).remove();
+                                                                            }
+                                                                        },
+                                                                        error: function(msg) {
+                                                                            alert("Error with the Start Application request after a failed migration attempt.");
+                                                                        }
+                                                                    });
+                                                            }
+                                                        },
+                                                        error: function(msg) {
+                                                            alert("Error with the Start Application request for migration.  Try again.");
+                                                        }
+                                                });   
+                                            }
                                             else if (msg == "There was an error stopping the application")
-                                                alert("Error stopping the application.");
+                                                alert("Error stopping the application during migration.");
                                         },
                                         error: function(msg) {
                                             alert("Error with the Stop Application request for migration.  Try again.");
-                                        }
-                                });
-
-                                $.ajax({
-                                        url: start_url,
-                                        success: function(msg) {
-                                            if (msg == "Application started successfully")
-                                                ;
-                                            else if (msg == "There was an error starting the application")
-                                                alert("Error starting the application.");
-                                        },
-                                        error: function(msg) {
-                                            alert("Error with the Start Application request for migration.  Try again.");
                                         }
                                 });
                             }
